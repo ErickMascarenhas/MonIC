@@ -1,0 +1,1283 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>MonIC - Login</title>
+    
+    <script src="https://cdn.tailwindcss.com"></script>
+    
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Karla:wght@700&display=swap" rel="stylesheet">
+    
+    <style>
+        body { font-family: 'Inter', sans-serif; -webkit-font-smoothing: antialiased; -moz-osx-font-smoothing: grayscale; }
+        .font-karla { font-family: 'Karla', sans-serif; }
+        @keyframes toast-in { from { transform: translateX(100%); opacity: 0; } to { transform: translateX(0); opacity: 1; } }
+        .toast-in { animation: toast-in 0.5s ease-out forwards; }
+        .truncate-text { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+    </style>
+</head>
+<body class="bg-gray-50">
+
+    <div id="toast-container" class="fixed top-5 right-5 z-50 space-y-3"></div>
+
+    <div id="login-screen" class="min-h-screen flex bg-gradient-to-br from-gray-50 to-gray-200">
+        <div class="flex-1 flex flex-col items-center justify-center p-4 sm:p-8 relative">
+            <div class="w-full max-w-md flex-grow flex flex-col justify-center">
+                
+                <div id="login-view" class="space-y-6">
+                    <div class="text-center">
+                        <img src="https://i.imgur.com/ChsuWeL.png" alt="Logo MonIC" class="w-20 h-20 mx-auto">
+                        <h1 class="font-karla text-4xl font-bold text-gray-800 mt-4">MonIC</h1>
+                        <p class="text-gray-500 mt-2">Sistema de Monitorias</p>
+                    </div>
+                    <div class="bg-white p-8 rounded-2xl shadow-lg">
+                        <form id="login-form" class="space-y-6">
+                            <div class="space-y-2">
+                                <label for="email" class="text-sm font-medium text-gray-700">E-mail</label>
+                                <input id="email" name="email" type="email" required placeholder="Digite seu e-mail institucional" pattern=".*@ic\.ufal\.br" title="O e-mail deve terminar com @ic.ufal.br" class="w-full h-12 px-4 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 transition">
+                            </div>
+                            <div class="space-y-2 relative">
+                                <label for="password" class="text-sm font-medium text-gray-700">Senha</label>
+                                <input id="password" name="password" type="password" required placeholder="Digite sua senha" class="w-full h-12 px-4 pr-10 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 transition">
+                                <button type="button" id="toggle-password" class="absolute inset-y-0 right-0 top-6 flex items-center px-3 text-gray-400 hover:text-gray-600">
+                                    <svg id="eye-open" xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" /><path stroke-linecap="round" stroke-linejoin="round" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" /></svg>
+                                    <svg id="eye-closed" xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 hidden" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M13.875 18.825A10.05 10.05 0 0112 19c-4.478 0-8.268-2.943-9.543-7a9.97 9.97 0 011.563-3.029m5.858.908a3 3 0 114.243 4.243M9.878 9.878l4.242 4.242M9.88 9.88l-3.29-3.29m7.532 7.532l3.29 3.29M3 3l3.59 3.59m0 0A9.953 9.953 0 0112 5c4.478 0 8.268 2.943 9.543 7a10.025 10.025 0 01-4.132 5.411m0 0L21 21" /></svg>
+                                </button>
+                            </div>
+                            <div class="flex items-center justify-between text-sm">
+                                <div class="flex items-center">
+                                    <input id="remember-me" name="remember-me" type="checkbox" class="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded">
+                                    <label for="remember-me" class="ml-2 block text-gray-900">Lembrar usuário</label>
+                                </div>
+                                <a href="#" id="forgot-password-link" class="font-medium text-blue-800 hover:underline">Esqueceu a senha?</a>
+                            </div>
+                            <button type="submit" class="w-full h-12 bg-blue-800 text-white font-bold rounded-lg hover:bg-blue-900 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-700 transition duration-300 flex items-center justify-center">
+                                <span id="login-button-text">Entrar</span>
+                                <svg id="login-spinner" class="animate-spin -ml-1 mr-3 h-5 w-5 text-white hidden" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path></svg>
+                            </button>
+                            <p id="error-message" class="pt-2 text-center text-sm text-red-600 hidden"></p>
+                        </form>
+                        <div class="text-center mt-4">
+                            <a href="#" id="register-link" class="font-medium text-sm text-blue-800 hover:underline">Não tem conta? Cadastre-se</a>
+                        </div>
+                    </div>
+                </div>
+
+                <div id="register-view" class="space-y-6 hidden">
+                    <div class="text-center"><h1 class="font-karla text-4xl font-bold text-gray-800">Cadastre-se</h1></div>
+                    <div class="bg-white p-8 rounded-2xl shadow-lg">
+                        <form id="register-form" class="space-y-6">
+                            <div class="space-y-2"><label for="register-name" class="text-sm font-medium text-gray-700">Nome Completo</label><input id="register-name" name="name" type="text" required placeholder="Seu nome" class="w-full h-12 px-4 border rounded-lg"></div>
+                            <div class="space-y-2"><label for="register-email" class="text-sm font-medium text-gray-700">E-mail</label><input id="register-email" name="email" type="email" required placeholder="Seu e-mail institucional" pattern=".*@ic\.ufal\.br" title="O e-mail deve terminar com @ic.ufal.br" class="w-full h-12 px-4 border rounded-lg"></div>
+                            <div class="space-y-2"><label for="register-password" class="text-sm font-medium text-gray-700">Senha</label><input id="register-password" name="password" type="password" required placeholder="Crie uma senha" class="w-full h-12 px-4 border rounded-lg"></div>
+                            <button type="submit" class="w-full h-12 bg-blue-800 text-white font-bold rounded-lg hover:bg-blue-900 transition">Cadastrar</button>
+                            <button type="button" class="back-to-login-link w-full h-12 bg-transparent text-gray-800 font-bold border rounded-lg hover:bg-gray-100 transition">Voltar ao login</button>
+                        </form>
+                    </div>
+                </div>
+
+                <div id="reset-password-view" class="space-y-6 hidden">
+                    <div class="text-center"><img src="https://i.imgur.com/ChsuWeL.png" alt="Logo MonIC" class="w-20 h-20 mx-auto"><h1 class="font-karla text-4xl font-bold text-gray-800 mt-4">MonIC</h1></div>
+                    <div class="bg-white p-8 rounded-2xl shadow-lg">
+                        <div class="text-left mb-6">
+                            <h2 class="text-xl font-bold text-gray-800">Esqueceu sua senha?</h2>
+                            <p class="text-sm text-gray-500 mt-1">Digite seu e-mail para receber instruções de recuperação.</p></div>
+                        <form id="reset-password-form" class="space-y-6">
+                            <div class="space-y-2"><label for="reset-email" class="text-sm font-medium text-gray-700">E-mail</label><input id="reset-email" name="reset-email" type="email" required placeholder="Seu e-mail institucional" pattern=".*@ic\.ufal\.br" title="O e-mail deve terminar com @ic.ufal.br" class="w-full h-12 px-4 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 transition"></div>
+                            <button type="submit" class="w-full h-12 bg-blue-800 text-white font-bold rounded-lg hover:bg-blue-900 transition">Enviar instruções</button>
+                            <button type="button" class="back-to-login-link w-full h-12 bg-transparent text-gray-800 font-bold border border-gray-300 rounded-lg hover:bg-gray-100 transition">Voltar ao login</button>
+                        </form>
+                    </div>
+                </div>
+
+                <div id="reset-confirmation-view" class="space-y-6 hidden">
+                    <div class="text-center"><img src="https://i.imgur.com/ChsuWeL.png" alt="Logo MonIC" class="w-20 h-20 mx-auto"><h1 class="font-karla text-4xl font-bold text-gray-800 mt-4">MonIC</h1></div>
+                    <div class="bg-white p-8 rounded-2xl shadow-lg text-center">
+                        <h2 class="text-xl font-bold text-gray-800">E-mail enviado!</h2>
+                        <p class="text-sm text-gray-600 mt-4">Se o e-mail estiver cadastrado, você receberá as instruções em breve. Verifique sua caixa de entrada.</p>
+                        <button type="button" class="back-to-login-link mt-8 w-full h-12 bg-transparent text-gray-800 font-bold border border-gray-300 rounded-lg hover:bg-gray-100 transition">Voltar ao login</button>
+                    </div>
+                </div>
+            </div>
+
+            <div class="w-full max-w-md flex items-center justify-between p-4">
+                <img src="https://i.imgur.com/ybhEwjL.png" alt="Logo da Instituição" class="h-8">
+                <button id="info-button" class="text-gray-500 hover:text-gray-800"><svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.5"><path stroke-linecap="round" stroke-linejoin="round" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" /></svg></button>
+            </div>
+        </div>
+
+        <div class="hidden lg:flex flex-1 relative">
+            <img src="https://s3.tribunadosertao.com.br/wp-content/uploads/2021/07/image7.jpg" alt="Prédio do Instituto de Computação - UFAL" class="object-cover w-full h-full">
+            <div class="absolute inset-0 bg-gradient-to-l from-gray-50/20 to-gray-50/5"></div>
+        </div>
+    </div>
+
+    <div id="dashboard-screen" class="hidden min-h-screen bg-white">
+        <header class="w-full px-4 sm:px-8 py-4 border-b border-gray-200 flex items-center justify-between relative">
+            <div class="flex items-center space-x-6">
+                <div class="flex items-center space-x-2"><img src="https://i.imgur.com/ChsuWeL.png" alt="Logo MonIC" class="w-8 h-8"><span class="text-xl font-bold text-gray-800">MonIC</span></div>
+                <div><h1 class="text-2xl font-semibold text-gray-800">Início</h1><p id="user-name-display" class="text-sm text-gray-500"></p></div>
+            </div>
+            <div class="flex items-center space-x-4">
+                <button id="secretaria-area-button" class="hidden text-sm font-medium text-gray-600 hover:text-blue-800 border border-gray-300 px-3 py-1.5 rounded-lg">Área da Secretaria</button>
+                <div class="relative">
+                    <button id="notifications-button" class="relative flex items-center space-x-2 text-gray-600 hover:text-blue-800">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.5"><path stroke-linecap="round" stroke-linejoin="round" d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9" /></svg>
+                        <span class="text-sm font-medium">Notificações</span>
+                        <div id="notification-dot" class="hidden absolute top-0 right-[-4px] w-2 h-2 bg-red-500 rounded-full"></div>
+                    </button>
+                    <div id="notifications-popup" class="hidden absolute right-0 mt-2 w-80 bg-white rounded-lg shadow-xl border border-gray-200 z-20">
+                        <div class="p-4 border-b"><h3 class="font-semibold text-gray-800">Notificações</h3></div>
+                        <div id="notifications-list" class="p-2 max-h-80 overflow-y-auto"></div>
+                    </div>
+                </div>
+                <button id="logout-button" class="flex items-center space-x-2 text-gray-600 hover:text-blue-800">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.5"><path stroke-linecap="round" stroke-linejoin="round" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" /></svg>
+                    <span class="text-sm font-medium">Sair</span>
+                </button>
+            </div>
+        </header>
+        <main class="w-full max-w-6xl mx-auto px-4 sm:px-8 py-8">
+            <div class="mb-8 border-b border-gray-200"><nav class="-mb-px flex space-x-8" aria-label="Tabs"><a href="#" id="minhas-disciplinas-tab" class="dashboard-tab border-blue-800 text-blue-800 whitespace-nowrap py-4 px-1 border-b-2 font-medium text-sm">Minhas Disciplinas</a><a href="#" id="minha-agenda-tab" class="dashboard-tab border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300 whitespace-nowrap py-4 px-1 border-b-2 font-medium text-sm">Minha Agenda</a><a href="#" id="procurar-disciplinas-tab" class="dashboard-tab border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300 whitespace-nowrap py-4 px-1 border-b-2 font-medium text-sm">Procurar Disciplinas</a></nav></div>
+            <div id="minhas-disciplinas-view" class="dashboard-view"><div id="minhas-disciplinas-container" class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6"></div></div>
+            <div id="minha-agenda-view" class="dashboard-view hidden">
+                 <div class="bg-white border border-gray-200 rounded-xl p-6 shadow-sm">
+                    <div class="flex flex-col sm:flex-row justify-between sm:items-center mb-4">
+                        <h2 class="text-xl font-bold text-gray-800 flex items-center"><svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 mr-2 text-gray-500" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" /></svg>Próximos Eventos</h2>
+                        <div id="agenda-legend-monitor" class="hidden mt-2 sm:mt-0 flex items-center space-x-4 text-sm"><div class="flex items-center"><div class="w-4 h-4 bg-blue-800 rounded mr-2"></div>Monitor (você organiza)</div><div class="flex items-center"><div class="w-4 h-4 bg-yellow-500 rounded mr-2"></div>Aluno (você participa)</div></div>
+                    </div>
+                    <div id="proximos-eventos-container" class="space-y-4"></div>
+                </div>
+                <div class="text-center mt-8"><button id="ver-agenda-completa-btn" class="inline-flex items-center px-4 py-2 border border-gray-300 shadow-sm text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50"><svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-2 text-gray-500" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" /></svg>Ver Agenda Completa</button></div>
+            </div>
+            <div id="procurar-disciplinas-view" class="dashboard-view hidden">
+                <div class="flex justify-between items-center mb-4">
+                    <div class="relative w-full max-w-lg"><input type="text" id="search-disciplina-input" placeholder="Buscar por disciplina, código ou monitor." class="w-full h-10 pl-10 pr-4 border rounded-lg"><svg class="w-5 h-5 text-gray-400 absolute left-3 top-1/2 -translate-y-1/2" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path></svg></div>
+                    <button id="criar-monitoria-btn" class="hidden ml-4 px-4 py-2 bg-blue-800 text-white font-semibold rounded-lg whitespace-nowrap">Criar Monitoria</button>
+                </div>
+                <h2 class="text-lg font-bold text-gray-800 mt-6 mb-2">Disciplinas Disponíveis (<span id="disciplinas-disponiveis-count"></span>)</h2>
+                <div id="procurar-disciplinas-container" class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6"></div>
+            </div>
+        </main>
+    </div>
+
+    <div id="disciplina-screen" class="hidden min-h-screen bg-gray-100">
+        <header class="w-full bg-blue-800 text-white shadow-lg">
+            <div class="max-w-7xl mx-auto px-4 sm:px-8 py-4 flex justify-between items-center">
+                <div><button id="back-to-dashboard-from-disciplina-btn" class="flex items-center text-sm opacity-80 hover:opacity-100"><svg class="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"></path></svg>Voltar</button><h1 id="disciplina-header-title" class="text-2xl font-bold mt-1"></h1></div>
+                <button id="cancelar-inscricao-btn" class="hidden px-3 py-1.5 bg-white bg-opacity-20 rounded-lg text-sm font-semibold hover:bg-opacity-30">Cancelar Inscrição</button>
+            </div>
+        </header>
+        <main class="w-full max-w-7xl mx-auto px-4 sm:px-8 py-8">
+            <div class="bg-white p-2 rounded-xl shadow-sm border border-gray-200 flex items-center justify-center space-x-4"><button data-view="agenda-avisos" class="disciplina-tab flex-1 text-center py-3 rounded-lg font-semibold bg-gray-100 text-blue-800">Agenda e Avisos</button><button data-view="materiais" class="disciplina-tab flex-1 text-center py-3 rounded-lg font-semibold text-gray-600">Materiais</button><button data-view="participantes" class="disciplina-tab flex-1 text-center py-3 rounded-lg font-semibold text-gray-600">Participantes</button></div>
+            <div id="disciplina-views-container" class="mt-6">
+                <div id="agenda-avisos-view" class="disciplina-view space-y-6">
+                    <div>
+                        <div class="flex justify-between items-center"><h2 class="text-xl font-bold">Agenda da Disciplina</h2><button id="criar-evento-btn" class="hidden px-4 py-2 border border-gray-300 text-sm font-semibold rounded-lg hover:bg-gray-100">Criar evento de monitoria</button></div>
+                        <div id="disciplina-agenda-container" class="mt-4 grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-4"></div>
+                    </div>
+                    <div>
+                        <div class="flex justify-between items-center"><h2 class="text-xl font-bold">Avisos</h2><button id="notificar-btn" class="hidden px-4 py-2 border border-gray-300 text-sm font-semibold rounded-lg hover:bg-gray-100">Notificar</button></div>
+                        <div id="avisos-container" class="mt-4 space-y-4"></div>
+                    </div>
+                </div>
+                <div id="materiais-view" class="disciplina-view hidden">
+                    <div class="flex justify-between items-center mb-4"><h2 class="text-xl font-bold">Repositório de Materiais</h2><button id="adicionar-material-btn" class="hidden px-4 py-2 bg-blue-800 text-white text-sm font-semibold rounded-lg">Adicionar materiais</button></div>
+                    <div id="materiais-container" class="space-y-2"></div>
+                </div>
+                <div id="participantes-view" class="disciplina-view hidden">
+                    <div class="flex justify-between items-center mb-4">
+                        <h2 class="text-xl font-bold">Participantes da Monitoria</h2>
+                        <div id="participantes-actions-container">
+                            <button id="change-monitors-btn" class="hidden px-4 py-2 bg-yellow-500 text-white text-sm font-semibold rounded-lg">Mudar Monitores</button>
+                            <div id="confirm-monitors-actions" class="hidden space-x-2">
+                                <button id="confirm-monitors-btn" class="px-4 py-2 bg-green-600 text-white text-sm font-semibold rounded-lg">Confirmar</button>
+                                <button id="cancel-change-monitors-btn" class="px-4 py-2 bg-gray-500 text-white text-sm font-semibold rounded-lg">Cancelar</button>
+                            </div>
+                        </div>
+                    </div>
+                    <div id="participantes-container" class="grid grid-cols-1 md:grid-cols-2 gap-4"></div>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <div id="agenda-completa-screen" class="hidden min-h-screen bg-white">
+        <header class="w-full px-4 sm:px-8 py-4 border-b border-gray-200 bg-white flex items-center justify-between">
+            <div class="flex items-center space-x-6"><div class="flex items-center space-x-2"><img src="https://i.imgur.com/ChsuWeL.png" alt="Logo MonIC" class="w-8 h-8"><span class="text-xl font-bold text-gray-800">MonIC</span></div><h1 class="text-2xl font-semibold text-gray-800">Agenda Completa</h1></div>
+            <button id="back-to-dashboard-from-agenda-btn" class="flex items-center space-x-2 text-gray-600 hover:text-blue-800 border border-gray-300 px-3 py-1.5 rounded-lg"><svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M10 19l-7-7m0 0l7-7m-7 7h18" /></svg><span class="text-sm font-medium">Voltar</span></button>
+        </header>
+        <main class="w-full max-w-7xl mx-auto px-4 sm:px-8 py-8">
+            <div id="agenda-completa-legend" class="mb-4 space-y-2 sm:space-y-0 sm:flex sm:items-center sm:space-x-6 text-sm"></div>
+            <div class="bg-white p-6 rounded-xl shadow-sm border border-gray-200">
+                <div class="flex flex-col sm:flex-row items-center justify-between mb-4">
+                    <div class="flex items-center space-x-1 bg-gray-100 p-1 rounded-lg"><button id="agenda-mes-btn" class="px-3 py-1 text-sm font-semibold rounded-md text-gray-600">Mês</button><button id="agenda-semana-btn" class="px-3 py-1 text-sm font-semibold rounded-md text-gray-600">Semana</button><button id="agenda-dia-btn" class="px-3 py-1 text-sm font-semibold rounded-md text-gray-600">Dia</button></div>
+                    <div class="flex items-center space-x-4 mt-4 sm:mt-0"><button id="hoje-btn" class="px-3 py-1 text-sm font-semibold text-gray-600 border border-gray-300 rounded-md hover:bg-gray-100">Hoje</button><div class="flex items-center space-x-2"><button id="prev-period-btn" class="p-1 rounded-md hover:bg-gray-100"><svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"></path></svg></button><span id="period-display" class="text-lg font-semibold text-gray-700 min-w-[10rem] text-center"></span><button id="next-period-btn" class="p-1 rounded-md hover:bg-gray-100"><svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"></path></svg></button></div></div>
+                </div>
+                <div id="calendar-container" class="overflow-x-auto"></div>
+            </div>
+        </main>
+    </div>
+
+    <div id="secretaria-screen" class="hidden min-h-screen bg-gray-50">
+        <header class="w-full px-4 sm:px-8 py-4 border-b border-gray-200 bg-white flex items-center justify-between">
+            <div class="flex items-center space-x-6"><div class="flex items-center space-x-2"><img src="https://i.imgur.com/ChsuWeL.png" alt="Logo MonIC" class="w-8 h-8"><span class="text-xl font-bold text-gray-800">MonIC</span></div><h1 class="text-2xl font-semibold text-gray-800">Secretaria</h1></div>
+            <button id="back-to-dashboard-button" class="flex items-center space-x-2 text-gray-600 hover:text-blue-800 border border-gray-300 px-3 py-1.5 rounded-lg"><svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M10 19l-7-7m0 0l7-7m-7 7h18" /></svg><span class="text-sm font-medium">Voltar</span></button>
+        </header>
+        <main class="w-full max-w-7xl mx-auto px-4 sm:px-8 py-8">
+            <div class="mb-8 border-b border-gray-200"><nav class="-mb-px flex space-x-8" aria-label="Tabs"><button id="solicitacoes-tab" class="border-blue-800 text-blue-800 whitespace-nowrap py-4 px-1 border-b-2 font-medium text-sm">Solicitações</button><button id="salas-tab" class="border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300 whitespace-nowrap py-4 px-1 border-b-2 font-medium text-sm">Salas e Disponibilidade</button></nav></div>
+            <div id="solicitacoes-view">
+                <div class="bg-white p-6 rounded-xl shadow-sm border border-gray-200">
+                    <h2 class="text-xl font-bold text-gray-800">Solicitações de Monitorias Presenciais</h2>
+                    <p class="text-sm text-gray-500 mt-1">Lista de eventos com permissão pendente.</p>
+                    <div class="mt-6 overflow-x-auto"><table class="w-full text-sm text-left text-gray-500"><thead class="text-xs text-gray-700 uppercase bg-gray-50"><tr><th scope="col" class="px-6 py-3">Disciplina</th><th scope="col" class="px-6 py-3">Monitor</th><th scope="col" class="px-6 py-3">Sala</th><th scope="col" class="px-6 py-3">Data</th><th scope="col" class="px-6 py-3">Horário</th><th scope="col" class="px-6 py-3 text-center">Ações</th></tr></thead><tbody id="solicitacoes-table-body"></tbody></table></div>
+                </div>
+            </div>
+            <div id="salas-view" class="hidden">
+                <div class="grid grid-cols-1 xl:grid-cols-3 gap-8">
+                    <div class="bg-white p-6 rounded-xl shadow-sm border border-gray-200 xl:col-span-1 space-y-8">
+                        <div>
+                            <h2 class="text-xl font-bold text-gray-800">Nova Sala</h2>
+                            <form id="add-sala-form" class="mt-6 space-y-4">
+                                <div><label for="add-sala-nome" class="text-sm font-medium">Nome da Sala</label><input id="add-sala-nome" type="text" placeholder="Ex: LAB4" required class="mt-1 w-full h-10 px-3 border rounded-md"></div>
+                                <button type="submit" class="w-full h-12 bg-green-600 text-white font-bold rounded-lg hover:bg-green-700">Adicionar Sala</button>
+                            </form>
+                        </div>
+                        <div>
+                            <h2 class="text-xl font-bold text-gray-800">Novo Bloqueio de Sala</h2>
+                            <form id="block-form" class="mt-6 space-y-4">
+                                <div><label for="block-sala" class="text-sm font-medium">Sala</label><select id="block-sala" class="mt-1 w-full h-10 px-3 border rounded-md bg-white"></select></div>
+                                <div><label for="block-date" class="text-sm font-medium">Data</label><input id="block-date" type="date" class="mt-1 w-full h-10 px-3 border rounded-md"></div>
+                                <div><label for="block-time" class="text-sm font-medium">Horário</label><select id="block-time" class="mt-1 w-full h-10 px-3 border rounded-md bg-white"></select></div>
+                                <div><label for="block-motivo" class="text-sm font-medium">Motivo (opcional)</label><input id="block-motivo" type="text" class="mt-1 w-full h-10 px-3 border rounded-md"></div>
+                                <button type="submit" class="w-full h-12 bg-blue-800 text-white font-bold rounded-lg hover:bg-blue-900">Bloquear</button>
+                            </form>
+                        </div>
+                    </div>
+                    <div class="bg-white p-6 rounded-xl shadow-sm border border-gray-200 xl:col-span-2">
+                        <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between">
+                            <div><h2 class="text-xl font-bold text-gray-800">Disponibilidade</h2><p class="text-sm text-gray-500 mt-1">Horários livres e bloqueados de cada sala</p></div>
+                            <div class="mt-4 sm:mt-0"><label for="schedule-sala" class="text-sm font-medium">Sala</label><select id="schedule-sala" class="mt-1 w-full sm:w-auto h-10 px-3 border rounded-md bg-white"></select></div>
+                        </div>
+                        <div class="mt-4 flex items-center justify-between">
+                            <div class="flex items-center text-sm"><div class="w-4 h-4 bg-red-500 rounded mr-2"></div>Horários ocupados</div>
+                            <div class="flex items-center space-x-2"><button id="prev-week" class="p-1 rounded-md hover:bg-gray-100"><svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"></path></svg></button><span id="week-display" class="text-sm font-semibold text-gray-700 w-28 text-center"></span><button id="next-week" class="p-1 rounded-md hover:bg-gray-100"><svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"></path></svg></button></div>
+                        </div>
+                         <p class="text-xs text-gray-400 mt-2">Dica: Clique em um horário ocupado para desbloqueá-lo.</p>
+                        <div id="schedule-grid" class="mt-2 overflow-x-auto"></div>
+                    </div>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <div id="info-modal" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 hidden z-50">
+        <div class="bg-white rounded-2xl shadow-xl max-w-md w-full p-6 relative">
+            <button id="close-modal-button" class="absolute top-4 right-4 text-gray-400 hover:text-gray-800"><svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12" /></svg></button>
+            <h2 class="text-lg font-bold text-gray-900">Sobre o MonIC</h2>
+            <div class="mt-4 space-y-4 text-sm text-gray-600">
+                <p>O <strong>MonIC</strong> é um sistema de gerenciamento de monitorias desenvolvido para o Instituto de Computação da UFAL.</p>
+                <div><h3 class="font-semibold text-gray-800">Funcionalidades principais:</h3><ul class="list-disc pl-5 mt-2 space-y-1"><li>Agendamento de monitorias</li><li>Gerenciamento de materiais didáticos</li><li>Sistema de avisos e comunicados</li><li>Acompanhamento de participação</li></ul></div>
+                <div class="pt-4 border-t border-gray-200"><p class="text-xs text-gray-500"><strong>Créditos:</strong> Sistema desenvolvido como projeto acadêmico para modernização dos processos de monitoria do IC/UFAL.</p></div>
+            </div>
+        </div>
+    </div>
+    
+    <div id="criar-monitoria-modal" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 hidden z-50">
+        <div class="bg-white rounded-2xl shadow-xl max-w-lg w-full p-6 relative">
+            <button id="close-criar-monitoria-modal" class="absolute top-4 right-4 text-gray-400 hover:text-gray-800"><svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12" /></svg></button>
+            <h2 class="text-lg font-bold text-gray-900">Criar Nova Monitoria</h2>
+            <form id="criar-monitoria-form" class="mt-4 space-y-4">
+                <div><label class="text-sm">Código da Disciplina</label><input name="codigo" type="text" required class="w-full h-10 px-3 border rounded-md mt-1"></div>
+                <div><label class="text-sm">Nome da Disciplina</label><input name="nome" type="text" required class="w-full h-10 px-3 border rounded-md mt-1"></div>
+                <div><label class="text-sm">Nome do Monitor</label><input name="monitor" type="text" required class="w-full h-10 px-3 border rounded-md mt-1"></div>
+                <button type="submit" class="w-full h-12 bg-blue-800 text-white font-bold rounded-lg hover:bg-blue-900">Criar</button>
+            </form>
+        </div>
+    </div>
+
+    <div id="adicionar-material-modal" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 hidden z-50">
+        <div class="bg-white rounded-2xl shadow-xl max-w-lg w-full p-6 relative">
+            <button id="close-adicionar-material-modal" class="absolute top-4 right-4 text-gray-400 hover:text-gray-800"><svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12" /></svg></button>
+            <h2 class="text-lg font-bold text-gray-900">Adicionar Material</h2>
+            <p class="text-sm text-gray-500">Insira um título e o link para o material (Ex: Google Drive, YouTube).</p>
+            <form id="adicionar-material-form" class="mt-4 space-y-4">
+                <div><label for="material-titulo" class="text-sm font-medium text-gray-700">Título do material</label><input id="material-titulo" name="titulo" type="text" required class="w-full h-10 px-3 border rounded-md mt-1" placeholder="Ex: Lista de Exercícios 1"></div>
+                <div><label for="material-link" class="text-sm font-medium text-gray-700">Link (URL)</label><input id="material-link" name="link" type="url" required class="w-full h-10 px-3 border rounded-md mt-1" placeholder="https://docs.google.com/..."></div>
+                <button type="submit" class="w-full h-12 bg-blue-800 text-white font-bold rounded-lg hover:bg-blue-900">Adicionar Link</button>
+            </form>
+        </div>
+    </div>
+
+    <div id="agendar-monitoria-modal" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 hidden z-50">
+        <div class="bg-white rounded-2xl shadow-xl max-w-md w-full p-6 relative">
+            <button id="close-agendar-monitoria-modal" class="absolute top-4 right-4 text-gray-400 hover:text-gray-800"><svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12" /></svg></button>
+            <h2 class="text-lg font-bold text-gray-900">Agendar monitoria</h2>
+            <p class="text-sm text-gray-500">Se for presencial, a secretaria receberá uma solicitação para confirmá-la.</p>
+            <form id="agendar-monitoria-form" class="mt-4 space-y-4">
+                <div class="flex items-center"><input id="sera-presencial" name="presencial" type="checkbox" class="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded"><label for="sera-presencial" class="ml-2 block text-sm text-gray-900">Será presencial?</label></div>
+                <div id="sala-input-container" class="transition-opacity duration-300 opacity-50"><label class="text-sm">Sala</label><select id="sala-select" name="sala" required class="w-full h-10 px-3 border rounded-md mt-1 bg-white" disabled></select></div>
+                <div><label class="text-sm">Data</label><input name="data" type="date" required class="w-full h-10 px-3 border rounded-md mt-1"></div>
+                <div class="grid grid-cols-2 gap-4"><div><label class="text-sm">Início</label><input name="inicio" type="time" required class="w-full h-10 px-3 border rounded-md mt-1"></div><div><label class="text-sm">Fim</label><input name="fim" type="time" required class="w-full h-10 px-3 border rounded-md mt-1"></div></div>
+                <button type="submit" class="w-full h-12 bg-blue-800 text-white font-bold rounded-lg hover:bg-blue-900">Agendar</button>
+            </form>
+        </div>
+    </div>
+
+    <div id="notificar-modal" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 hidden z-50">
+        <div class="bg-white rounded-2xl shadow-xl max-w-lg w-full p-6 relative">
+            <button id="close-notificar-modal" class="absolute top-4 right-4 text-gray-400 hover:text-gray-800"><svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12" /></svg></button>
+            <h2 class="text-lg font-bold text-gray-900">Notificar</h2>
+            <p class="text-sm text-gray-500">Todos os inscritos receberão uma notificação</p>
+            <form id="notificar-form" class="mt-4">
+                <textarea name="aviso" class="w-full h-32 p-3 border rounded-md" placeholder="Escreva aqui um aviso para sua turma"></textarea>
+                <button type="submit" class="w-full h-12 bg-blue-800 text-white font-bold rounded-lg hover:bg-blue-900 mt-4">Enviar</button>
+            </form>
+        </div>
+    </div>
+
+    <script>
+        const mockDB = {
+            usuarios: [
+                { id: 'user_aluno', nome: 'Aluno de Teste', email: 'aluno@ic.ufal.br', password: 'monic123', role: 'aluno', disciplinasInscrito: ['disc_p1', 'disc_ed'] },
+                { id: 'user_monitor', nome: 'Monitor de Teste', email: 'monitor@ic.ufal.br', password: 'monic123', role: 'aluno', disciplinasInscrito: ['disc_p1', 'disc_c1'] },
+                { id: 'user_secretaria', nome: 'Secretaria IC', email: 'secretaria@ic.ufal.br', password: 'monic123', role: 'secretaria', disciplinasInscrito: [] },
+                { id: 'user_ana', nome: 'Ana Souza', email: 'ana@ic.ufal.br', password: 'monic123', role: 'aluno', disciplinasInscrito: ['disc_p1'] },
+                { id: 'user_bruno', nome: 'Bruno Costa', email: 'bruno@ic.ufal.br', password: 'monic123', role: 'aluno', disciplinasInscrito: ['disc_p1', 'disc_ed'] },
+            ],
+            disciplinas: [
+                { id: 'disc_p1', codigo: 'COMP214', nome: 'Programação 1', materiais: [{titulo: 'Slides Aula 1', link:'#'}, {titulo: 'Lista de Exercícios', link:'#'}], avisos: [{id: 'aviso1', autorNome: 'Monitor de Teste', mensagem: 'Pessoal, a monitoria de amanhã será focada em laços de repetição.', data: new Date('2025-08-20T10:00:00') }] },
+                { id: 'disc_ed', codigo: 'COMP215', nome: 'Estrutura de Dados', materiais: [], avisos: [] },
+                { id: 'disc_c1', codigo: 'COMP021', nome: 'Cálculo 1', materiais: [{titulo: 'Tabela de Derivadas', link:'#'}], avisos: [] },
+                { id: 'disc_bd', codigo: 'COMP321', nome: 'Banco de Dados', materiais: [], avisos: [] },
+            ],
+            monitorias: [
+                { userId: 'user_monitor', disciplinaId: 'disc_p1' },
+                { userId: 'user_ana', disciplinaId: 'disc_ed' },
+            ],
+            agendaEventos: [
+                { id: 'evt1', disciplinaId: 'disc_p1', sala: 'Online', date: '2025-09-05', time: '10:10 - 11:00' },
+                { id: 'evt2', disciplinaId: 'disc_p1', sala: 'LAB1', date: '2025-09-10', time: '14:20 - 15:10' },
+                { id: 'evt3', disciplinaId: 'disc_ed', sala: 'Online', date: '2025-09-12', time: '09:20 - 10:10' },
+                { id: 'evt4', disciplinaId: 'disc_c1', sala: 'LAB3', date: '2025-09-08', time: '15:20 - 16:10' },
+            ],
+            solicitacoes: [
+                { id: 'sol1', disciplinaId: 'disc_p1', disciplinaNome: 'Programação 1', monitorId: 'user_monitor', monitorNome: 'Monitor de Teste', sala: 'LAB2', data: '15/09/2025', horario: '10:10 - 11:00', status: 'pendente'},
+                { id: 'sol2', disciplinaId: 'disc_ed', disciplinaNome: 'Estrutura de Dados', monitorId: 'user_ana', monitorNome: 'Ana Souza', sala: 'LAB1', data: '11/09/2025', horario: '11:10 - 12:00', status: 'aprovado'},
+                { id: 'sol3', disciplinaId: 'disc_p1', disciplinaNome: 'Programação 1', monitorId: 'user_monitor', monitorNome: 'Monitor de Teste', sala: 'LAB3', data: '12/09/2025', horario: '15:20 - 16:10', status: 'rejeitado'},
+            ],
+            salas: [
+                { id: 'sala1', nome: 'LAB1' },
+                { id: 'sala2', nome: 'LAB2' },
+                { id: 'sala3', nome: 'LAB3' },
+                { id: 'sala4', nome: 'AUDITORIO' },
+            ],
+            bloqueios: [
+                {id: 'blq1', sala: 'LAB1', date: '2025-09-05', time: '09:20 - 10:10', motivo: 'Manutenção'},
+                {id: 'blq2', sala: 'LAB1', date: '2025-09-05', time: '10:10 - 11:00', motivo: 'Manutenção'},
+                {id: 'blq3', sala: 'LAB2', date: '2025-09-08', time: '14:20 - 15:10', motivo: 'Monitoria: Cálculo 1'},
+            ],
+            notificacoes: [
+                { id: 'not1', userId: 'user_aluno', message: 'Novo material adicionado: Slides Aula 1', lida: false, timestamp: new Date() },
+                { id: 'not2', userId: 'user_aluno', message: 'Novo aviso: Pessoal, a monitoria...', lida: true, timestamp: new Date() },
+                { id: 'not3', userId: 'user_secretaria', message: 'Nova solicitação de sala para Programação 1.', lida: false, timestamp: new Date() },
+            ],
+        };
+
+        let loggedInUser = null;
+        let currentOpenDisciplinaId = null;
+        let isEditingMonitors = false;
+
+        const allScreens = { login: document.getElementById('login-screen'), dashboard: document.getElementById('dashboard-screen'), secretaria: document.getElementById('secretaria-screen'), agendaCompleta: document.getElementById('agenda-completa-screen'), disciplina: document.getElementById('disciplina-screen') };
+        const loginView = document.getElementById('login-view'), resetPasswordView = document.getElementById('reset-password-view'), resetConfirmationView = document.getElementById('reset-confirmation-view'),
+              registerView = document.getElementById('register-view'), loginForm = document.getElementById('login-form'), registerForm = document.getElementById('register-form'),
+              forgotPasswordLink = document.getElementById('forgot-password-link'), registerLink = document.getElementById('register-link'), backToLoginLinks = document.querySelectorAll('.back-to-login-link'),
+              errorMessage = document.getElementById('error-message'), logoutButton = document.getElementById('logout-button'), infoModal = document.getElementById('info-modal'), infoButton = document.getElementById('info-button'),
+              closeModalButton = document.getElementById('close-modal-button'), secretariaAreaButton = document.getElementById('secretaria-area-button'), backToDashboardButton = document.getElementById('back-to-dashboard-button'),
+              solicitacoesTab = document.getElementById('solicitacoes-tab'), salasTab = document.getElementById('salas-tab'), solicitacoesView = document.getElementById('solicitacoes-view'),
+              salasView = document.getElementById('salas-view'), notificationsButton = document.getElementById('notifications-button'), notificationsPopup = document.getElementById('notifications-popup'),
+              notificationDot = document.getElementById('notification-dot'), notificationsList = document.getElementById('notifications-list'),
+              blockForm = document.getElementById('block-form'), scheduleGrid = document.getElementById('schedule-grid'),
+              weekDisplay = document.getElementById('week-display'), prevWeekBtn = document.getElementById('prev-week'), nextWeekBtn = document.getElementById('next-week'),
+              scheduleSalaSelect = document.getElementById('schedule-sala'), blockTimeSelect = document.getElementById('block-time'), solicitacoesTableBody = document.getElementById('solicitacoes-table-body'),
+              toastContainer = document.getElementById('toast-container'), togglePasswordBtn = document.getElementById('toggle-password'), passwordInput = document.getElementById('password'),
+              eyeOpen = document.getElementById('eye-open'), eyeClosed = document.getElementById('eye-closed'),
+              dashboardTabs = document.querySelectorAll('.dashboard-tab'), dashboardViews = document.querySelectorAll('.dashboard-view'),
+              minhasDisciplinasContainer = document.getElementById('minhas-disciplinas-container'), procurarDisciplinasContainer = document.getElementById('procurar-disciplinas-container'),
+              procurarDisciplinasTab = document.getElementById('procurar-disciplinas-tab'),
+              proximosEventosContainer = document.getElementById('proximos-eventos-container'), agendaLegendMonitor = document.getElementById('agenda-legend-monitor'),
+              verAgendaCompletaBtn = document.getElementById('ver-agenda-completa-btn'), backToDashboardFromAgendaBtn = document.getElementById('back-to-dashboard-from-agenda-btn'),
+              calendarContainer = document.getElementById('calendar-container'), periodDisplay = document.getElementById('period-display'),
+              prevPeriodBtn = document.getElementById('prev-period-btn'), nextPeriodBtn = document.getElementById('next-period-btn'), agendaCompletaLegend = document.getElementById('agenda-completa-legend'),
+              agendaMesBtn = document.getElementById('agenda-mes-btn'), agendaSemanaBtn = document.getElementById('agenda-semana-btn'), agendaDiaBtn = document.getElementById('agenda-dia-btn'),
+              hojeBtn = document.getElementById('hoje-btn'),
+              disciplinaHeaderTitle = document.getElementById('disciplina-header-title'), cancelarInscricaoBtn = document.getElementById('cancelar-inscricao-btn'),
+              disciplinaTabs = document.querySelectorAll('.disciplina-tab'), disciplinaViews = document.querySelectorAll('.disciplina-view'),
+              materiaisContainer = document.getElementById('materiais-container'), participantesContainer = document.getElementById('participantes-container'),
+              backToDashboardFromDisciplinaBtn = document.getElementById('back-to-dashboard-from-disciplina-btn'),
+              criarMonitoriaBtn = document.getElementById('criar-monitoria-btn'), criarMonitoriaModal = document.getElementById('criar-monitoria-modal'),
+              closeCriarMonitoriaModal = document.getElementById('close-criar-monitoria-modal'), criarMonitoriaForm = document.getElementById('criar-monitoria-form'),
+              disciplinasDisponiveisCount = document.getElementById('disciplinas-disponiveis-count'), userNameDisplay = document.getElementById('user-name-display'),
+              disciplinaAgendaContainer = document.getElementById('disciplina-agenda-container'), searchDisciplinaInput = document.getElementById('search-disciplina-input'),
+              criarEventoBtn = document.getElementById('criar-evento-btn'), notificarBtn = document.getElementById('notificar-btn'),
+              agendarMonitoriaModal = document.getElementById('agendar-monitoria-modal'), notificarModal = document.getElementById('notificar-modal'),
+              closeAgendarMonitoriaModal = document.getElementById('close-agendar-monitoria-modal'), closeNotificarModal = document.getElementById('close-notificar-modal'),
+              agendarMonitoriaForm = document.getElementById('agendar-monitoria-form'), notificarForm = document.getElementById('notificar-form'),
+              avisosContainer = document.getElementById('avisos-container'),
+              loginButtonText = document.getElementById('login-button-text'), loginSpinner = document.getElementById('login-spinner'),
+              adicionarMaterialBtn = document.getElementById('adicionar-material-btn'),
+              adicionarMaterialModal = document.getElementById('adicionar-material-modal'),
+              closeAdicionarMaterialModal = document.getElementById('close-adicionar-material-modal'),
+              adicionarMaterialForm = document.getElementById('adicionar-material-form'),
+              seraPresencialCheckbox = document.getElementById('sera-presencial'),
+              salaInputContainer = document.getElementById('sala-input-container'),
+              salaSelect = document.getElementById('sala-select'),
+              addSalaForm = document.getElementById('add-sala-form'),
+              blockSalaSelect = document.getElementById('block-sala'),
+              participantesActionsContainer = document.getElementById('participantes-actions-container'),
+              changeMonitorsBtn = document.getElementById('change-monitors-btn'),
+              confirmMonitorsActions = document.getElementById('confirm-monitors-actions'),
+              confirmMonitorsBtn = document.getElementById('confirm-monitors-btn'),
+              cancelChangeMonitorsBtn = document.getElementById('cancel-change-monitors-btn');
+              
+        const showScreen = (screenName) => { Object.values(allScreens).forEach(screen => screen.classList.add('hidden')); allScreens[screenName].classList.remove('hidden'); };
+        const showToast = (message, type = 'success') => {
+            const bgColor = type === 'success' ? 'bg-green-600' : 'bg-yellow-500';
+            const toast = document.createElement('div');
+            toast.className = `p-4 rounded-lg text-white font-semibold shadow-lg toast-in ${bgColor}`;
+            toast.textContent = message;
+            toastContainer.appendChild(toast);
+            setTimeout(() => { toast.remove(); }, 3000);
+        };
+        const showLoading = (isLoggingIn) => {
+            loginButtonText.classList.toggle('hidden', isLoggingIn);
+            loginSpinner.classList.toggle('hidden', !isLoggingIn);
+            loginForm.querySelector('button[type="submit"]').disabled = isLoggingIn;
+        };
+        const capitalize = (s) => s.charAt(0).toUpperCase() + s.slice(1);
+        const formatDate = (date) => { 
+            const year = date.getFullYear(); 
+            const month = String(date.getMonth() + 1).padStart(2, '0'); 
+            const day = String(date.getDate()).padStart(2, '0'); 
+            return `${year}-${month}-${day}`; 
+        };
+
+        const checkAuthState = async () => {
+            const userId = sessionStorage.getItem('loggedInUserId') || localStorage.getItem('loggedInUserId');
+            if (userId) {
+                const user = mockDB.usuarios.find(u => u.id === userId);
+                if (user) {
+                    loggedInUser = JSON.parse(JSON.stringify(user));
+                    if (loggedInUser.role === 'secretaria') {
+                       loggedInUser.disciplinasInscrito = mockDB.disciplinas.map(d => d.id);
+                    }
+                    listenToNotificacoes();
+                    await setupDashboard();
+                    showScreen('dashboard');
+                } else {
+                    handleLogout();
+                }
+            } else {
+                loggedInUser = null;
+                showScreen('login');
+                loginView.classList.remove('hidden');
+                registerView.classList.add('hidden');
+                resetPasswordView.classList.add('hidden');
+            }
+        };
+
+        loginForm.addEventListener('submit', async (event) => {
+            event.preventDefault();
+            errorMessage.classList.add('hidden');
+            showLoading(true);
+            const email = event.target.email.value;
+            const password = event.target.password.value;
+            const rememberMe = event.target['remember-me'].checked;
+            
+            const user = mockDB.usuarios.find(u => u.email === email && u.password === password);
+            
+            setTimeout(() => {
+                if (user) {
+                    if (rememberMe) {
+                        localStorage.setItem('loggedInUserId', user.id);
+                    } else {
+                        sessionStorage.setItem('loggedInUserId', user.id);
+                    }
+                    checkAuthState();
+                } else {
+                    errorMessage.textContent = "E-mail ou senha inválidos.";
+                    errorMessage.classList.remove('hidden');
+                }
+                showLoading(false);
+            }, 1000);
+        });
+
+        registerForm.addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const name = e.target.name.value;
+            const email = e.target.email.value;
+            const password = e.target.password.value;
+            
+            if (mockDB.usuarios.some(u => u.email === email)) {
+                showToast("Erro ao cadastrar. O e-mail já pode estar em uso.", "warning");
+                return;
+            }
+
+            const newUser = {
+                id: 'user_' + Date.now(),
+                nome: name,
+                email: email,
+                password: password,
+                role: 'aluno',
+                disciplinasInscrito: []
+            };
+            mockDB.usuarios.push(newUser);
+            showToast("Cadastro realizado com sucesso!", "success");
+            
+            registerView.classList.add('hidden');
+            loginView.classList.remove('hidden');
+            loginForm.reset();
+        });
+
+        const handleLogout = () => {
+            localStorage.removeItem('loggedInUserId');
+            sessionStorage.removeItem('loggedInUserId');
+            checkAuthState();
+        };
+        logoutButton.addEventListener('click', handleLogout);
+
+        document.getElementById('reset-password-form').addEventListener('submit', (e) => {
+            e.preventDefault();
+            resetPasswordView.classList.add('hidden');
+            resetConfirmationView.classList.remove('hidden');
+        });
+
+        const setupDashboard = async () => {
+            if (!loggedInUser) return;
+            userNameDisplay.textContent = loggedInUser.nome;
+            secretariaAreaButton.classList.toggle('hidden', loggedInUser.role !== 'secretaria');
+            criarMonitoriaBtn.classList.toggle('hidden', loggedInUser.role !== 'secretaria');
+            const userIsMonitor = isUserMonitorOfAnyDisciplina(loggedInUser.id);
+            agendaLegendMonitor.classList.toggle('hidden', !userIsMonitor);
+            if (loggedInUser.role === 'secretaria') {
+                renderSolicitacoes(mockDB.solicitacoes);
+                renderSalasOptions();
+                renderSchedule();
+            }
+            renderMinhasDisciplinas();
+            renderProcurarDisciplinas();
+            renderProximosEventos();
+        };
+
+        const isUserMonitorOfAnyDisciplina = (userId) => {
+            return mockDB.monitorias.some(m => m.userId === userId);
+        };
+
+        const getMonitoriasForDisciplina = (disciplinaId) => {
+            return mockDB.monitorias.filter(m => m.disciplinaId === disciplinaId).map(m => m.userId);
+        };
+
+        const renderMinhasDisciplinas = () => {
+            minhasDisciplinasContainer.innerHTML = '';
+            if (!loggedInUser || !loggedInUser.disciplinasInscrito || loggedInUser.disciplinasInscrito.length === 0) {
+                minhasDisciplinasContainer.innerHTML = `<p class="text-gray-500 col-span-full">Você não está inscrito em nenhuma monitoria.</p>`;
+                return;
+            }
+            
+            const minhas = mockDB.disciplinas.filter(d => loggedInUser.disciplinasInscrito.includes(d.id));
+            
+            minhas.forEach(disciplina => {
+                const monitoresIds = getMonitoriasForDisciplina(disciplina.id);
+                let monitorDisplayNames = 'N/A';
+                if (monitoresIds.length > 0) {
+                    monitorDisplayNames = monitoresIds.map(id => mockDB.usuarios.find(u => u.id === id)?.nome).filter(Boolean).join(', ');
+                }
+                const card = document.createElement('div');
+                card.className = "bg-white border border-gray-200 rounded-xl p-6 flex flex-col shadow-sm";
+                card.innerHTML = `<p class="text-xs font-semibold text-gray-500 uppercase">${disciplina.codigo}</p><h3 class="text-lg font-bold text-gray-900 mt-1">${disciplina.nome}</h3><p class="text-sm text-gray-600 mt-2">Monitor(es): <span class="font-medium">${monitorDisplayNames}</span></p><button data-id="${disciplina.id}" class="mt-6 w-full bg-blue-800 text-white font-bold py-2.5 px-4 rounded-lg hover:bg-blue-900">Abrir</button>`;
+                card.querySelector('button').addEventListener('click', () => showDisciplinaScreen(disciplina.id));
+                minhasDisciplinasContainer.appendChild(card);
+            });
+        };
+
+        const renderProcurarDisciplinas = (searchTerm = '') => {
+            procurarDisciplinasContainer.innerHTML = '';
+            const lowerSearchTerm = searchTerm.toLowerCase();
+
+            const filteredDisciplinas = mockDB.disciplinas.filter(d => {
+                const monitoresIds = getMonitoriasForDisciplina(d.id);
+                const monitorNames = monitoresIds.map(id => mockDB.usuarios.find(u => u.id === id)?.nome).join(' ').toLowerCase();
+                return d.nome.toLowerCase().includes(lowerSearchTerm) || d.codigo.toLowerCase().includes(lowerSearchTerm) || monitorNames.includes(lowerSearchTerm);
+            });
+
+            disciplinasDisponiveisCount.textContent = filteredDisciplinas.length;
+            if (filteredDisciplinas.length === 0) {
+                procurarDisciplinasContainer.innerHTML = `<p class="text-gray-500 col-span-full">Nenhuma disciplina encontrada.</p>`;
+                return;
+            }
+
+            filteredDisciplinas.forEach(d => {
+                const isSubscribed = loggedInUser.disciplinasInscrito.includes(d.id);
+                const monitoresIds = getMonitoriasForDisciplina(d.id);
+                const monitorDisplayNames = monitoresIds.map(id => mockDB.usuarios.find(u => u.id === id)?.nome).filter(Boolean).join(', ') || 'N/A';
+
+                const card = document.createElement('div');
+                card.className = "bg-white border border-gray-200 rounded-xl p-6 flex flex-col shadow-sm";
+                card.innerHTML = `<p class="text-xs font-semibold text-gray-500 uppercase">${d.codigo}</p><h3 class="text-lg font-bold text-gray-900 mt-1">${d.nome}</h3><p class="text-sm text-gray-600 mt-2">Monitor(es): <span class="font-medium">${monitorDisplayNames}</span></p><button data-id="${d.id}" class="mt-6 w-full text-white font-bold py-2.5 px-4 rounded-lg ${isSubscribed ? 'bg-gray-500 hover:bg-gray-600' : 'bg-blue-800 hover:bg-blue-900'}">${isSubscribed ? 'Abrir' : 'Inscrever-se'}</button>`;
+                procurarDisciplinasContainer.appendChild(card);
+            });
+        };
+
+        searchDisciplinaInput.addEventListener('input', (e) => renderProcurarDisciplinas(e.target.value));
+
+        procurarDisciplinasContainer.addEventListener('click', (e) => {
+            if (e.target.tagName === 'BUTTON') {
+                const disciplinaId = e.target.dataset.id;
+                const isSubscribed = loggedInUser.disciplinasInscrito.includes(disciplinaId);
+                if (isSubscribed) {
+                    showDisciplinaScreen(disciplinaId);
+                } else {
+                    loggedInUser.disciplinasInscrito.push(disciplinaId);
+                    renderProcurarDisciplinas(searchDisciplinaInput.value);
+                    renderMinhasDisciplinas();
+                    showToast('Inscrição realizada com sucesso!');
+                }
+            }
+        });
+
+        criarMonitoriaForm.addEventListener('submit', (e) => {
+            e.preventDefault();
+            const codigo = e.target.codigo.value.toUpperCase();
+            const nome = e.target.nome.value;
+            const monitorNome = e.target.monitor.value;
+
+            const monitor = mockDB.usuarios.find(u => u.nome.toLowerCase() === monitorNome.toLowerCase());
+            if (!monitor) {
+                showToast(`Monitor "${monitorNome}" não encontrado.`, "warning");
+                return;
+            }
+
+            const newDisciplina = { id: 'disc_' + Date.now(), codigo, nome, materiais: [], avisos: [] };
+            mockDB.disciplinas.push(newDisciplina);
+            mockDB.monitorias.push({ userId: monitor.id, disciplinaId: newDisciplina.id });
+
+            criarMonitoriaModal.classList.add('hidden');
+            e.target.reset();
+            renderProcurarDisciplinas();
+            showToast('Nova monitoria criada com sucesso!');
+        });
+
+        const showDisciplinaScreen = (disciplinaId) => {
+            currentOpenDisciplinaId = disciplinaId;
+            const disciplina = mockDB.disciplinas.find(d => d.id === disciplinaId);
+            if (!disciplina) { showToast("Disciplina não encontrada.", "warning"); return; }
+            
+            const userIsMonitor = isUserMonitorOfDisciplina(loggedInUser.id, disciplinaId);
+            disciplinaHeaderTitle.textContent = `${disciplina.codigo} - ${disciplina.nome}`;
+            cancelarInscricaoBtn.dataset.id = disciplinaId;
+            cancelarInscricaoBtn.classList.toggle('hidden', loggedInUser.role === 'secretaria' || userIsMonitor);
+            criarEventoBtn.classList.toggle('hidden', !userIsMonitor);
+            notificarBtn.classList.toggle('hidden', !userIsMonitor);
+            adicionarMaterialBtn.classList.toggle('hidden', !userIsMonitor);
+            changeMonitorsBtn.classList.toggle('hidden', loggedInUser.role !== 'secretaria');
+            criarEventoBtn.dataset.disciplinaId = disciplinaId;
+            notificarBtn.dataset.disciplinaId = disciplinaId;
+            
+            const agendaTab = document.querySelector('.disciplina-tab[data-view="agenda-avisos"]');
+            const agendaView = document.getElementById('agenda-avisos-view');
+            setActiveTab(agendaTab, agendaView, disciplinaTabs, disciplinaViews);
+            
+            renderDisciplinaAgenda(disciplinaId);
+            renderAvisos(disciplinaId);
+            renderMateriais(disciplinaId);
+            renderParticipantes(disciplinaId);
+            showScreen('disciplina');
+        };
+
+        cancelarInscricaoBtn.addEventListener('click', (e) => {
+            const disciplinaId = e.target.dataset.id;
+            loggedInUser.disciplinasInscrito = loggedInUser.disciplinasInscrito.filter(id => id !== disciplinaId);
+            showScreen('dashboard');
+            renderMinhasDisciplinas();
+            renderProcurarDisciplinas();
+            showToast('Inscrição cancelada.');
+        });
+
+        const renderMateriais = (disciplinaId) => {
+            materiaisContainer.innerHTML = '';
+            const disciplina = mockDB.disciplinas.find(d => d.id === disciplinaId);
+            const listaDeMateriais = disciplina.materiais || [];
+            const isMonitor = isUserMonitorOfDisciplina(loggedInUser.id, disciplinaId);
+
+            if (listaDeMateriais.length === 0) {
+                materiaisContainer.innerHTML = `<div class="text-center py-12 border-2 border-dashed border-gray-200 rounded-lg"><p class="text-gray-500">Nenhum material foi adicionado.</p></div>`;
+                return;
+            }
+            listaDeMateriais.forEach((material, index) => {
+                const materialCard = document.createElement('div');
+                materialCard.className = 'flex items-center justify-between p-3 bg-gray-50 rounded-lg border';
+                materialCard.innerHTML = `<div class="flex items-center"><svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 text-gray-500 mr-3" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M13.828 10.172a4 4 0 00-5.656 0l-4 4a4 4 0 105.656 5.656l1.102-1.101m-.758-4.899a4 4 0 005.656 0l4-4a4 4 0 00-5.656-5.656l-1.1 1.1" /></svg><span class="font-medium text-gray-800">${material.titulo}</span></div><div class="flex items-center space-x-2"><a href="${material.link}" target="_blank" class="px-3 py-1 text-sm font-semibold text-white bg-blue-800 rounded-md hover:bg-blue-900">Abrir</a>${isMonitor ? `<button data-index="${index}" class="delete-material-btn p-1 text-gray-400 hover:text-red-600"><svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" /></svg></button>` : ''}</div>`;
+                materiaisContainer.appendChild(materialCard);
+            });
+        };
+        
+        adicionarMaterialForm.addEventListener('submit', (e) => {
+            e.preventDefault();
+            const titulo = e.target.titulo.value;
+            const link = e.target.link.value;
+            if (!titulo || !link) return;
+            const disciplina = mockDB.disciplinas.find(d => d.id === currentOpenDisciplinaId);
+            disciplina.materiais.push({ titulo, link });
+            
+            showToast('Material adicionado com sucesso!');
+            adicionarMaterialModal.classList.add('hidden');
+            e.target.reset();
+            renderMateriais(currentOpenDisciplinaId);
+        });
+
+        materiaisContainer.addEventListener('click', (e) => {
+            const deleteBtn = e.target.closest('.delete-material-btn');
+            if (!deleteBtn) return;
+            const materialIndex = parseInt(deleteBtn.dataset.index, 10);
+            const disciplina = mockDB.disciplinas.find(d => d.id === currentOpenDisciplinaId);
+            const materialParaRemover = disciplina.materiais[materialIndex];
+            
+            if (materialParaRemover && confirm(`Tem certeza que deseja excluir "${materialParaRemover.titulo}"?`)) {
+                disciplina.materiais.splice(materialIndex, 1);
+                showToast('Material removido.');
+                renderMateriais(currentOpenDisciplinaId);
+            }
+        });
+
+        const isUserMonitorOfDisciplina = (userId, disciplinaId) => {
+            if (!userId || !disciplinaId) return false;
+            return mockDB.monitorias.some(m => m.userId === userId && m.disciplinaId === disciplinaId);
+        };
+
+        const renderParticipantes = (disciplinaId) => {
+            participantesContainer.innerHTML = '';
+            const participantes = mockDB.usuarios.filter(u => u.disciplinasInscrito.includes(disciplinaId));
+            const monitoresIds = getMonitoriasForDisciplina(disciplinaId);
+
+            participantes.forEach(participante => {
+                const isMonitor = monitoresIds.includes(participante.id);
+                const card = document.createElement('div');
+                card.className = 'p-4 border rounded-lg bg-gray-50 flex items-center justify-between';
+                let checkboxHTML = '';
+                if (isEditingMonitors) {
+                    checkboxHTML = `<input type="checkbox" data-uid="${participante.id}" class="monitor-checkbox h-5 w-5 text-blue-600 border-gray-300 rounded focus:ring-blue-500" ${isMonitor ? 'checked' : ''}>`;
+                }
+                card.innerHTML = `<div><p class="font-bold">${participante.nome} <span class="text-xs font-medium bg-gray-200 text-gray-700 px-2 py-0.5 rounded-full ml-2">${isMonitor ? 'Monitor(a)' : 'Aluno(a)'}</span></p><p class="text-sm text-gray-600 mt-1">${participante.email}</p></div>${checkboxHTML}`;
+                participantesContainer.appendChild(card);
+            });
+        };
+
+        changeMonitorsBtn.addEventListener('click', () => {
+            isEditingMonitors = true;
+            changeMonitorsBtn.classList.add('hidden');
+            confirmMonitorsActions.classList.remove('hidden');
+            renderParticipantes(currentOpenDisciplinaId);
+        });
+
+        cancelChangeMonitorsBtn.addEventListener('click', () => {
+            isEditingMonitors = false;
+            changeMonitorsBtn.classList.remove('hidden');
+            confirmMonitorsActions.classList.add('hidden');
+            renderParticipantes(currentOpenDisciplinaId);
+        });
+
+        confirmMonitorsBtn.addEventListener('click', () => {
+            const selectedMonitorIds = Array.from(document.querySelectorAll('.monitor-checkbox:checked')).map(cb => cb.dataset.uid);
+            mockDB.monitorias = mockDB.monitorias.filter(m => m.disciplinaId !== currentOpenDisciplinaId);
+            selectedMonitorIds.forEach(userId => {
+                mockDB.monitorias.push({ userId, disciplinaId: currentOpenDisciplinaId });
+            });
+            showToast('Monitores atualizados com sucesso!');
+            isEditingMonitors = false;
+            changeMonitorsBtn.classList.remove('hidden');
+            confirmMonitorsActions.classList.add('hidden');
+            renderParticipantes(currentOpenDisciplinaId);
+        });
+
+        const renderAvisos = (disciplinaId) => {
+            avisosContainer.innerHTML = '';
+            const disciplina = mockDB.disciplinas.find(d => d.id === disciplinaId);
+            if (!disciplina.avisos || disciplina.avisos.length === 0) {
+                avisosContainer.innerHTML = `<div class="border rounded-lg p-4 bg-gray-50 text-center text-gray-500"><p>Nenhum aviso publicado.</p></div>`;
+                return;
+            }
+            [...disciplina.avisos].reverse().forEach(aviso => {
+                const dataAviso = aviso.data.toLocaleString('pt-BR', { day: '2-digit', month: 'short', hour: '2-digit', minute: '2-digit' });
+                const avisoHTML = `<div class="border rounded-lg p-4 bg-gray-50"><p class="font-bold">${aviso.autorNome}</p><p class="text-sm text-gray-500">${dataAviso}</p><p class="mt-2">${aviso.mensagem}</p></div>`;
+                avisosContainer.innerHTML += avisoHTML;
+            });
+        };
+
+        notificarForm.addEventListener('submit', (e) => {
+            e.preventDefault();
+            const disciplinaId = notificarBtn.dataset.disciplinaId;
+            const mensagem = e.target.aviso.value;
+            if (!mensagem.trim()) return;
+
+            const disciplina = mockDB.disciplinas.find(d => d.id === disciplinaId);
+            disciplina.avisos.push({
+                id: 'aviso' + Date.now(),
+                mensagem: mensagem,
+                autorNome: loggedInUser.nome,
+                autorId: loggedInUser.id,
+                data: new Date()
+            });
+            
+            renderAvisos(disciplinaId);
+            showToast('Notificação enviada para a turma!');
+            notificarModal.classList.add('hidden');
+            e.target.reset();
+        });
+
+        let agendaCompletaDate = new Date();
+        let currentAgendaView = 'month';
+                
+        const renderAgendaCompleta = () => {
+            if (!loggedInUser || !loggedInUser.disciplinasInscrito || loggedInUser.disciplinasInscrito.length === 0) {
+                calendarContainer.innerHTML = `<p class="text-center text-gray-500 p-8">Inscreva-se em disciplinas para ver sua agenda.</p>`;
+                return;
+            }
+            const userEvents = mockDB.agendaEventos.filter(evt => loggedInUser.disciplinasInscrito.includes(evt.disciplinaId));
+            userEvents.forEach(e => {
+                const disciplina = mockDB.disciplinas.find(d => d.id === e.disciplinaId);
+                e.disciplinaNome = disciplina ? disciplina.nome : 'Disciplina Desconhecida';
+            });
+
+            if (currentAgendaView === 'month') renderMonthView(userEvents);
+            if (currentAgendaView === 'week') renderWeekView(userEvents);
+            if (currentAgendaView === 'day') renderDayView(userEvents);
+        };
+        
+        const renderMonthView = (userEvents) => {
+            const month = agendaCompletaDate.getMonth();
+            const year = agendaCompletaDate.getFullYear();
+            periodDisplay.textContent = `${capitalize(agendaCompletaDate.toLocaleDateString('pt-BR', { month: 'long' }))} ${year}`;
+            let contentHTML = `<div class="grid grid-cols-7 gap-px bg-gray-200 border border-gray-200">`;
+            const daysOfWeek = ['Dom', 'Seg', 'Ter', 'Qua', 'Qui', 'Sex', 'Sab'];
+            daysOfWeek.forEach(day => { contentHTML += `<div class="text-center font-semibold text-sm py-2 text-gray-600 bg-white">${day}</div>`; });
+            const firstDay = new Date(year, month, 1).getDay();
+            const daysInMonth = new Date(year, month + 1, 0).getDate();
+            for (let i = 0; i < firstDay; i++) { contentHTML += `<div class="bg-gray-50 min-h-[6rem]"></div>`; }
+            for (let day = 1; day <= daysInMonth; day++) {
+                const dateStr = formatDate(new Date(year, month, day));
+                const dayEvents = userEvents.filter(event => event.date === dateStr);
+                let eventsIndicator = '';
+                if (dayEvents.length > 0) {
+                     eventsIndicator = `<div class="absolute bottom-2 left-2 flex items-center space-x-1">${dayEvents.slice(0, 3).map(() => '<div class="w-2 h-2 bg-blue-500 rounded-full"></div>').join('')}${dayEvents.length > 3 ? '<span class="text-xs font-bold">+</span>' : ''}</div>`;
+                }
+                contentHTML += `<div class="p-2 bg-white text-right text-sm min-h-[6rem] relative">${day}${eventsIndicator}</div>`;
+            }
+            contentHTML += `</div>`;
+            calendarContainer.innerHTML = contentHTML;
+        };
+        
+        const renderDisciplinaAgenda = (disciplinaId) => {
+            disciplinaAgendaContainer.innerHTML = '';
+            const hoje = formatDate(new Date());
+            const eventos = mockDB.agendaEventos.filter(evt => evt.disciplinaId === disciplinaId && evt.date >= hoje)
+                                                .sort((a,b) => new Date(a.date) - new Date(b.date));
+            if (eventos.length === 0) {
+                disciplinaAgendaContainer.innerHTML = `<p class="text-gray-500 col-span-full">Nenhum evento futuro agendado.</p>`;
+                return;
+            }
+            eventos.forEach(event => {
+                const eventDate = new Date(event.date + 'T12:00:00');
+                const card = document.createElement('div');
+                card.className = "bg-white p-3 rounded-lg border border-gray-200 text-center";
+                card.innerHTML = `<p class="font-bold text-blue-800">${eventDate.toLocaleDateString('pt-BR', { weekday: 'short' }).split(',')[0]}.</p><p class="text-2xl font-bold text-gray-800">${eventDate.getDate()}</p><p class="text-xs text-gray-500">${eventDate.toLocaleDateString('pt-BR', { month: 'short' })}</p><p class="text-xs text-gray-600 mt-2">${event.time}</p><p class="text-xs text-gray-500">${event.sala}</p>`;
+                disciplinaAgendaContainer.appendChild(card);
+            });
+        };
+        
+        const renderWeekView = (userEvents) => {
+            const startOfWeek = new Date(agendaCompletaDate);
+            startOfWeek.setDate(startOfWeek.getDate() - startOfWeek.getDay());
+            const endOfWeek = new Date(startOfWeek);
+            endOfWeek.setDate(startOfWeek.getDate() + 6);
+            periodDisplay.textContent = `${startOfWeek.toLocaleDateString('pt-BR', {day: '2-digit', month: 'short'})} - ${endOfWeek.toLocaleDateString('pt-BR', {day: '2-digit', month: 'short', year: 'numeric'})}`;
+            let contentHTML = `<div class="grid grid-cols-7 gap-px bg-gray-200 border border-gray-200">`;
+            const daysOfWeek = ['Dom', 'Seg', 'Ter', 'Qua', 'Qui', 'Sex', 'Sab'];
+            daysOfWeek.forEach(day => { contentHTML += `<div class="text-center font-semibold text-sm py-2 text-gray-600 bg-white">${day}</div>`; });
+            for (let i = 0; i < 7; i++) {
+                const dayDate = new Date(startOfWeek);
+                dayDate.setDate(startOfWeek.getDate() + i);
+                const dateStr = formatDate(dayDate);
+                const dayEvents = userEvents.filter(event => event.date === dateStr);
+                let eventsHTML = dayEvents.map(event => `<div class="p-1 text-xs rounded bg-blue-100 mb-1 truncate" title="${event.disciplinaNome} - ${event.time}">${event.disciplinaNome}</div>`).join('');
+                contentHTML += `<div class="p-2 bg-white h-32 overflow-y-auto"><p class="font-semibold text-gray-700 text-center">${dayDate.getDate()}</p><div class="mt-1">${eventsHTML}</div></div>`;
+            }
+            contentHTML += `</div>`;
+            calendarContainer.innerHTML = contentHTML;
+        };
+        
+        const renderDayView = (userEvents) => {
+            const dateStr = formatDate(agendaCompletaDate);
+            periodDisplay.textContent = agendaCompletaDate.toLocaleDateString('pt-BR', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' });
+            const dayEvents = userEvents.filter(event => event.date === dateStr).sort((a,b) => a.time.localeCompare(b.time));
+            if (dayEvents.length === 0) {
+                calendarContainer.innerHTML = `<p class="text-center text-gray-500 p-8">Nenhum evento para este dia.</p>`;
+                return;
+            }
+            let contentHTML = '<div class="space-y-4">';
+            dayEvents.forEach(event => {
+                const isMonitor = isUserMonitorOfDisciplina(loggedInUser.id, event.disciplinaId);
+                const borderColor = isMonitor ? 'border-blue-800' : 'border-yellow-500';
+                contentHTML += `<div class="p-4 bg-white rounded-lg border-l-4 ${borderColor} shadow-sm"><p class="font-bold text-gray-800">${event.disciplinaNome}</p><p class="text-sm text-gray-600">Horário: ${event.time}</p><p class="text-sm text-gray-600">Local: ${event.sala}</p></div>`;
+            });
+            contentHTML += '</div>';
+            calendarContainer.innerHTML = contentHTML;
+        };
+        
+        const setAgendaView = (view) => {
+            currentAgendaView = view;
+            const btns = { month: agendaMesBtn, week: agendaSemanaBtn, day: agendaDiaBtn };
+            Object.values(btns).forEach(b => b.classList.remove('bg-white', 'text-blue-700', 'shadow'));
+            btns[view].classList.add('bg-white', 'text-blue-700', 'shadow');
+            renderAgendaCompleta();
+        };
+        
+        prevPeriodBtn.addEventListener('click', () => { 
+            if(currentAgendaView === 'month') agendaCompletaDate.setMonth(agendaCompletaDate.getMonth() - 1); 
+            else agendaCompletaDate.setDate(agendaCompletaDate.getDate() - (currentAgendaView === 'week' ? 7 : 1)); 
+            renderAgendaCompleta(); 
+        });
+        nextPeriodBtn.addEventListener('click', () => { 
+            if(currentAgendaView === 'month') agendaCompletaDate.setMonth(agendaCompletaDate.getMonth() + 1); 
+            else agendaCompletaDate.setDate(agendaCompletaDate.getDate() + (currentAgendaView === 'week' ? 7 : 1)); 
+            renderAgendaCompleta(); 
+        });
+        hojeBtn.addEventListener('click', () => { 
+            agendaCompletaDate = new Date(); 
+            renderAgendaCompleta(); 
+        });
+        agendaMesBtn.addEventListener('click', () => setAgendaView('month'));
+        agendaSemanaBtn.addEventListener('click', () => setAgendaView('week'));
+        agendaDiaBtn.addEventListener('click', () => setAgendaView('day'));
+        
+        const renderProximosEventos = () => {
+            proximosEventosContainer.innerHTML = '';
+            const hoje = formatDate(new Date());
+            if (!loggedInUser.disciplinasInscrito || loggedInUser.disciplinasInscrito.length === 0) {
+                proximosEventosContainer.innerHTML = `<p class="text-center text-gray-500">Inscreva-se em uma disciplina para ver os eventos.</p>`;
+                return;
+            }
+            const eventos = mockDB.agendaEventos
+                .filter(evt => loggedInUser.disciplinasInscrito.includes(evt.disciplinaId) && evt.date >= hoje)
+                .sort((a,b) => new Date(a.date) - new Date(b.date));
+
+            if (eventos.length === 0) {
+                proximosEventosContainer.innerHTML = `<p class="text-center text-gray-500">Nenhum evento programado.</p>`;
+                return;
+            }
+            let eventsHtml = '<div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">';
+            eventos.slice(0, 3).forEach(event => {
+                const disciplinaNome = mockDB.disciplinas.find(d => d.id === event.disciplinaId)?.nome || "Desconhecida";
+                const isMonitor = isUserMonitorOfDisciplina(loggedInUser.id, event.disciplinaId);
+                const borderColor = isMonitor ? 'border-blue-800' : 'border-yellow-500';
+                eventsHtml += `<div class="bg-gray-50 p-4 rounded-lg border border-gray-200"><h3 class="font-bold text-gray-800">${new Date(event.date + 'T12:00:00').toLocaleDateString('pt-BR', {weekday: 'long', day: '2-digit', month: 'short'})}</h3><div class="mt-2 p-3 bg-white rounded-md border-l-4 ${borderColor}"><p class="font-bold text-gray-800">${disciplinaNome}</p><p class="text-sm text-gray-500">Local: ${event.sala}</p><p class="text-sm text-gray-500">Horário: ${event.time}</p></div></div>`;
+            });
+            eventsHtml += '</div>';
+            proximosEventosContainer.innerHTML = eventsHtml;
+        };
+
+        agendarMonitoriaForm.addEventListener('submit', (e) => {
+            e.preventDefault();
+            const disciplinaId = criarEventoBtn.dataset.disciplinaId;
+            const isPresencial = e.target.presencial.checked;
+            const sala = e.target.sala.value;
+            const data = e.target.data.value;
+            const inicio = e.target.inicio.value;
+            const fim = e.target.fim.value;
+            if (!data || !inicio || !fim || (isPresencial && !sala)) {
+                showToast("Preencha todos os campos obrigatórios.", "warning");
+                return;
+            }
+            const disciplinaNome = mockDB.disciplinas.find(d => d.id === disciplinaId)?.nome;
+            if (isPresencial) {
+                mockDB.solicitacoes.push({ id: 'sol' + Date.now(), disciplinaId, disciplinaNome, monitorId: loggedInUser.id, monitorNome: loggedInUser.nome, sala, data: new Date(data + 'T12:00:00').toLocaleDateString('pt-BR'), horario: `${inicio} - ${fim}`, status: 'pendente' });
+                showToast('Solicitação de monitoria presencial enviada!');
+            } else {
+                mockDB.agendaEventos.push({ id: 'evt' + Date.now(), disciplinaId, sala: 'Online', date: data, time: `${inicio} - ${fim}` });
+                showToast('Evento online criado com sucesso!');
+            }
+            renderDisciplinaAgenda(disciplinaId);
+            agendarMonitoriaModal.classList.add('hidden');
+            e.target.reset();
+            salaSelect.disabled = true;
+            salaInputContainer.style.opacity = '0.5';
+        });
+
+        let currentDate = new Date();
+        const populateTimeSlots = () => {
+            const timeSlots = ['07:30 - 08:20', '08:20 - 09:10', '09:20 - 10:10', '10:10 - 11:00', '11:10 - 12:00', '12:00 - 12:50', '13:30 - 14:20', '14:20 - 15:10', '15:20 - 16:10', '16:10 - 17:00', '17:10 - 18:00', '18:00 - 18:50'];
+            timeSlots.forEach(slot => { const option = document.createElement('option'); option.value = slot; option.textContent = slot; blockTimeSelect.appendChild(option); }); 
+        };
+
+        const renderSolicitacoes = (solicitacoes) => {
+            solicitacoesTableBody.innerHTML = '';
+            if (solicitacoes.length === 0) {
+                solicitacoesTableBody.innerHTML = `<tr><td colspan="6" class="text-center p-4 text-gray-500">Nenhuma solicitação encontrada.</td></tr>`;
+                return;
+            }
+            solicitacoes.forEach(req => {
+                const row = document.createElement('tr');
+                let statusClass = 'bg-white';
+                if (req.status === 'aprovado') statusClass = 'bg-green-50';
+                if (req.status === 'rejeitado') statusClass = 'bg-red-50';
+                let actionsHtml = '';
+                if (req.status === 'pendente') {
+                    actionsHtml = `<button data-action="aprovar" data-id="${req.id}" class="flex items-center px-3 py-1 text-xs font-medium text-white bg-green-600 rounded-md hover:bg-green-700">Aprovar</button><button data-action="rejeitar" data-id="${req.id}" class="flex items-center px-3 py-1 text-xs font-medium text-white bg-red-600 rounded-md hover:bg-red-700">Rejeitar</button>`;
+                } else {
+                    actionsHtml = `<button data-action="desfazer" data-id="${req.id}" class="flex items-center px-3 py-1 text-xs font-medium text-gray-700 bg-gray-200 rounded-md hover:bg-gray-300">Desfazer</button>`;
+                }
+                row.className = `${statusClass} border-b`;
+                row.innerHTML = `<td class="px-6 py-4 font-medium text-gray-900">${req.disciplinaNome}</td><td class="px-6 py-4">${req.monitorNome}</td><td class="px-6 py-4">${req.sala}</td><td class="px-6 py-4">${req.data}</td><td class="px-6 py-4">${req.horario}</td><td class="px-6 py-4 flex items-center justify-center space-x-2">${actionsHtml}</td>`;
+                solicitacoesTableBody.appendChild(row);
+            });
+        };
+
+        solicitacoesTableBody.addEventListener('click', (e) => { 
+            const button = e.target.closest('button'); 
+            if (!button) return; 
+            const action = button.dataset.action; 
+            const id = button.dataset.id; 
+            const req = mockDB.solicitacoes.find(s => s.id === id);
+            
+            if (action === 'aprovar') { 
+                req.status = 'aprovado';
+                const dateParts = req.data.split('/');
+                const isoDate = `${dateParts[2]}-${dateParts[1]}-${dateParts[0]}`;
+                mockDB.agendaEventos.push({ id: 'evt' + Date.now(), disciplinaId: req.disciplinaId, sala: req.sala, date: isoDate, time: req.horario });
+                mockDB.bloqueios.push({ id: 'blq' + Date.now(), sala: req.sala, date: isoDate, time: req.horario, motivo: `Monitoria: ${req.disciplinaNome}`});
+                showToast('Monitoria agendada', 'success'); 
+            } 
+            if (action === 'rejeitar') { 
+                req.status = 'rejeitado';
+                showToast('Monitoria rejeitada', 'warning'); 
+            } 
+            if (action === 'desfazer') { 
+                req.status = 'pendente'; 
+            }
+            renderSolicitacoes(mockDB.solicitacoes);
+            renderSchedule();
+        });
+
+        const renderSchedule = () => {
+            const startOfWeek = new Date(currentDate);
+            startOfWeek.setDate(startOfWeek.getDate() - startOfWeek.getDay() + 1); // Start on Monday
+            
+            const monthNames = ["Jan", "Fev", "Mar", "Abr", "Mai", "Jun", "Jul", "Ago", "Set", "Out", "Nov", "Dez"];
+            const endOfWeek = new Date(startOfWeek);
+            endOfWeek.setDate(endOfWeek.getDate() + 4);
+            weekDisplay.textContent = `${monthNames[startOfWeek.getMonth()]} ${startOfWeek.getDate()} - ${endOfWeek.getDate()}`;
+            
+            const selectedSala = scheduleSalaSelect.value;
+            if (!selectedSala) {
+                scheduleGrid.innerHTML = `<p class="p-4 text-center text-gray-500">Selecione uma sala para ver a disponibilidade.</p>`;
+                return;
+            };
+
+            const blockedSlots = mockDB.bloqueios.filter(b => b.sala === selectedSala);
+
+            let gridHTML = `<table class="w-full text-center border-collapse"><thead><tr class="text-sm font-semibold text-gray-600"><th class="border p-2 w-32">Horários</th><th class="border p-2">Seg</th><th class="border p-2">Ter</th><th class="border p-2">Qua</th><th class="border p-2">Qui</th><th class="border p-2">Sex</th></tr></thead><tbody>`;
+            const timeSlots = ['07:30 - 08:20', '08:20 - 09:10', '09:20 - 10:10', '10:10 - 11:00', '11:10 - 12:00', '12:00 - 12:50', '13:30 - 14:20', '14:20 - 15:10', '15:20 - 16:10', '16:10 - 17:00', '17:10 - 18:00', '18:00 - 18:50'];
+            timeSlots.forEach(time => { 
+                gridHTML += `<tr class="text-xs"><td class="border p-2 font-medium text-gray-500">${time}</td>`; 
+                for (let i = 0; i < 5; i++) { 
+                    const dayDate = new Date(startOfWeek); 
+                    dayDate.setDate(startOfWeek.getDate() + i); 
+                    const dateStr = formatDate(dayDate); 
+                    const blockedSlot = blockedSlots.find(slot => slot.date === dateStr && slot.time === time); 
+                    const bgColor = blockedSlot ? 'bg-red-500 cursor-pointer' : 'bg-blue-50'; 
+                    const dataInfo = blockedSlot ? `data-id="${blockedSlot.id}"` : ''; 
+                    const textInfo = blockedSlot ? `<div class="text-white text-xs truncate-text" title="${blockedSlot.motivo || 'Sem motivo'}">${blockedSlot.motivo || 'Bloqueado'}</div>` : ''; 
+                    gridHTML += `<td class="border p-2 ${bgColor} h-10" ${dataInfo}>${textInfo}</td>`; 
+                } 
+                gridHTML += `</tr>`; 
+            }); 
+            gridHTML += `</tbody></table>`; 
+            scheduleGrid.innerHTML = gridHTML;
+        };
+
+        scheduleGrid.addEventListener('click', (e) => { 
+            const cell = e.target.closest('td'); 
+            if (!cell || !cell.dataset.id) return;
+            if (confirm('Deseja desbloquear este horário?')) {
+                const blockId = cell.dataset.id;
+                mockDB.bloqueios = mockDB.bloqueios.filter(b => b.id !== blockId);
+                showToast("Horário desbloqueado.", "success");
+                renderSchedule();
+            }
+        });
+
+        blockForm.addEventListener('submit', (e) => { 
+            e.preventDefault(); 
+            const newBlock = { id: 'blq' + Date.now(), sala: e.target['block-sala'].value, date: e.target['block-date'].value, time: e.target['block-time'].value, motivo: e.target['block-motivo'].value }; 
+            if (!newBlock.date) { showToast('Por favor, selecione uma data.', 'warning'); return; }
+            mockDB.bloqueios.push(newBlock);
+            showToast("Horário bloqueado com sucesso!", "success");
+            e.target.reset();
+            renderSchedule();
+        });
+
+        const renderSalasOptions = () => {
+            const selects = [salaSelect, scheduleSalaSelect, blockSalaSelect];
+            selects.forEach(s => s.innerHTML = '');
+            mockDB.salas.forEach(sala => {
+                selects.forEach(s => {
+                    const option = document.createElement('option');
+                    option.value = sala.nome;
+                    option.textContent = sala.nome;
+                    s.appendChild(option);
+                });
+            });
+            renderSchedule();
+        };
+
+        addSalaForm.addEventListener('submit', (e) => {
+            e.preventDefault();
+            const nomeSala = e.target.querySelector('input').value.trim().toUpperCase();
+            if (!nomeSala) return;
+            if (mockDB.salas.some(s => s.nome === nomeSala)) {
+                showToast("Essa sala já existe.", "warning");
+                return;
+            }
+            mockDB.salas.push({id: 'sala' + Date.now(), nome: nomeSala});
+            showToast(`Sala ${nomeSala} adicionada.`);
+            e.target.reset();
+            renderSalasOptions();
+        });
+
+        const listenToNotificacoes = () => {
+            notificationsList.innerHTML = '';
+            const userNotifs = mockDB.notificacoes.filter(n => n.userId === loggedInUser.id);
+            if (userNotifs.length === 0) {
+                notificationsList.innerHTML = '<p class="text-sm text-gray-500 text-center p-4">Nenhuma notificação.</p>';
+                notificationDot.classList.add('hidden');
+                return;
+            }
+            let hasUnread = false;
+            userNotifs.sort((a,b) => b.timestamp - a.timestamp).forEach(notif => {
+                if (!notif.lida) hasUnread = true;
+                const item = document.createElement('div');
+                item.className = `p-3 border-b border-gray-100 ${!notif.lida ? 'bg-blue-50' : ''}`;
+                item.innerHTML = `<p class="text-sm text-gray-700">${notif.message}</p>`;
+                notificationsList.appendChild(item);
+            });
+            notificationDot.classList.toggle('hidden', !hasUnread);
+        };
+
+        togglePasswordBtn.addEventListener('click', () => { 
+            const isPassword = passwordInput.type === 'password'; 
+            passwordInput.type = isPassword ? 'text' : 'password'; 
+            eyeOpen.classList.toggle('hidden', isPassword); 
+            eyeClosed.classList.toggle('hidden', !isPassword); 
+        });
+
+        secretariaAreaButton.addEventListener('click', () => showScreen('secretaria'));
+        backToDashboardButton.addEventListener('click', () => showScreen('dashboard'));
+        verAgendaCompletaBtn.addEventListener('click', () => { 
+            showScreen('agendaCompleta');
+            setAgendaView('month');
+            renderAgendaCompleta();
+        });
+        backToDashboardFromAgendaBtn.addEventListener('click', () => showScreen('dashboard'));
+        backToDashboardFromDisciplinaBtn.addEventListener('click', () => showScreen('dashboard'));
+
+        solicitacoesTab.addEventListener('click', () => setActiveTab(solicitacoesTab, solicitacoesView, [solicitacoesTab, salasTab], [solicitacoesView, salasView]));
+        salasTab.addEventListener('click', () => setActiveTab(salasTab, salasView, [solicitacoesTab, salasTab], [solicitacoesView, salasView]));
+
+        const setActiveTab = (activeTab, viewToShow, allTabs, allViews) => {
+            allViews.forEach(v => v.classList.add('hidden'));
+            allTabs.forEach(t => {
+                t.classList.remove('border-blue-800', 'text-blue-800', 'bg-gray-100');
+                t.classList.add('border-transparent', 'text-gray-500', 'hover:text-gray-700', 'hover:border-gray-300');
+            });
+            viewToShow.classList.remove('hidden');
+            activeTab.classList.add('border-blue-800', 'text-blue-800');
+            activeTab.classList.remove('border-transparent', 'text-gray-500', 'hover:text-gray-700', 'hover:border-gray-300');
+            if (Array.from(allTabs).every(t => t.classList.contains('disciplina-tab'))) {
+                allTabs.forEach(t => t.classList.remove('bg-gray-100', 'text-blue-800'));
+                activeTab.classList.add('bg-gray-100', 'text-blue-800');
+            }
+        };
+
+        dashboardTabs.forEach(tab => {
+            tab.addEventListener('click', (e) => {
+                e.preventDefault();
+                const viewId = e.target.id.replace('-tab', '-view');
+                const viewToShow = document.getElementById(viewId);
+                setActiveTab(e.target, viewToShow, dashboardTabs, dashboardViews);
+            });
+        });
+
+        disciplinaTabs.forEach(tab => {
+            tab.addEventListener('click', (e) => {
+                const clickedTab = e.currentTarget;
+                const viewName = clickedTab.dataset.view;
+                const viewToShow = document.getElementById(`${viewName}-view`);
+                setActiveTab(clickedTab, viewToShow, disciplinaTabs, disciplinaViews);
+            });
+        });
+
+        registerLink.addEventListener('click', (e) => { e.preventDefault(); loginView.classList.add('hidden'); registerView.classList.remove('hidden'); });
+        forgotPasswordLink.addEventListener('click', (e) => { e.preventDefault(); loginView.classList.add('hidden'); resetPasswordView.classList.remove('hidden'); });
+        backToLoginLinks.forEach(link => { link.addEventListener('click', (e) => { e.preventDefault(); registerView.classList.add('hidden'); resetPasswordView.classList.add('hidden'); resetConfirmationView.classList.add('hidden'); loginView.classList.remove('hidden'); }); });
+
+        infoButton.addEventListener('click', () => infoModal.classList.remove('hidden'));
+        closeModalButton.addEventListener('click', () => infoModal.classList.add('hidden'));
+        infoModal.addEventListener('click', (e) => { if (e.target === infoModal) infoModal.classList.add('hidden'); });
+
+        criarMonitoriaBtn.addEventListener('click', () => criarMonitoriaModal.classList.remove('hidden'));
+        closeCriarMonitoriaModal.addEventListener('click', () => criarMonitoriaModal.classList.add('hidden'));
+        criarMonitoriaModal.addEventListener('click', (e) => { if (e.target === criarMonitoriaModal) criarMonitoriaModal.classList.add('hidden'); });
+
+        adicionarMaterialBtn.addEventListener('click', () => adicionarMaterialModal.classList.remove('hidden'));
+        closeAdicionarMaterialModal.addEventListener('click', () => adicionarMaterialModal.classList.add('hidden'));
+        adicionarMaterialModal.addEventListener('click', (e) => { if (e.target === adicionarMaterialModal) adicionarMaterialModal.classList.add('hidden'); });
+
+        criarEventoBtn.addEventListener('click', () => agendarMonitoriaModal.classList.remove('hidden'));
+        closeAgendarMonitoriaModal.addEventListener('click', () => agendarMonitoriaModal.classList.add('hidden'));
+        agendarMonitoriaModal.addEventListener('click', (e) => { if(e.target === agendarMonitoriaModal) agendarMonitoriaModal.classList.add('hidden'); });
+
+        notificarBtn.addEventListener('click', () => notificarModal.classList.remove('hidden'));
+        closeNotificarModal.addEventListener('click', () => notificarModal.classList.add('hidden'));
+        notificarModal.addEventListener('click', (e) => { if(e.target === notificarModal) notificarModal.classList.add('hidden'); });
+
+        seraPresencialCheckbox.addEventListener('change', (e) => {
+            const isChecked = e.target.checked;
+            salaSelect.disabled = !isChecked;
+            salaInputContainer.style.opacity = isChecked ? '1' : '0.5';
+            if (!isChecked) salaSelect.value = '';
+        });
+
+        notificationsButton.addEventListener('click', () => { 
+            notificationsPopup.classList.toggle('hidden'); 
+            if (!notificationsPopup.classList.contains('hidden')) {
+                mockDB.notificacoes.forEach(n => {
+                    if (n.userId === loggedInUser.id) n.lida = true;
+                });
+                listenToNotificacoes();
+            }
+        });
+
+        prevWeekBtn.addEventListener('click', () => { currentDate.setDate(currentDate.getDate() - 7); renderSchedule(); });
+        nextWeekBtn.addEventListener('click', () => { currentDate.setDate(currentDate.getDate() + 7); renderSchedule(); });
+        scheduleSalaSelect.addEventListener('change', renderSchedule);
+
+        document.addEventListener('DOMContentLoaded', () => {
+            populateTimeSlots();
+            checkAuthState();
+        });
+        
+    </script>
+</body>
+</html>
