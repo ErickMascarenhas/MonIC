@@ -1,0 +1,33 @@
+{
+  "indexes": [
+    {
+      "collectionGroup": "agendaEventos",
+      "queryScope": "COLLECTION",
+      "fields": [
+        {
+          "fieldPath": "disciplinaId",
+          "order": "ASCENDING"
+        },
+        {
+          "fieldPath": "date",
+          "order": "ASCENDING"
+        }
+      ]
+    },
+    {
+      "collectionGroup": "bloqueios",
+      "queryScope": "COLLECTION",
+      "fields": [
+        {
+          "fieldPath": "sala",
+          "order": "ASCENDING"
+        },
+        {
+          "fieldPath": "date",
+          "order": "ASCENDING"
+        }
+      ]
+    }
+  ],
+  "fieldOverrides": []
+}
