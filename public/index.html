@@ -17,18 +17,29 @@
         @keyframes toast-in { from { transform: translateX(100%); opacity: 0; } to { transform: translateX(0); opacity: 1; } }
         .toast-in { animation: toast-in 0.5s ease-out forwards; }
         .truncate-text { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+        .loading-spinner {
+            border: 6px solid #f3f3f3;
+            border-top: 6px solid #3b82f6;
+            border-radius: 50%;
+            width: 50px;
+            height: 50px;
+            animation: spin 1s linear infinite;
+        }
+        @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
     </style>
 </head>
 <body class="bg-gray-50">
 
+    <div id="loading-overlay" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-[100]">
+        <div class="loading-spinner"></div>
+    </div>
+
     <div id="toast-container" class="fixed top-5 right-5 z-50 space-y-3"></div>
 
-    <!-- TELA DE LOGIN -->
-    <div id="login-screen" class="min-h-screen flex bg-gradient-to-br from-gray-50 to-gray-200">
+    <div id="login-screen" class="hidden min-h-screen flex bg-gradient-to-br from-gray-50 to-gray-200">
         <div class="flex-1 flex flex-col items-center justify-center p-4 sm:p-8 relative">
             <div class="w-full max-w-md flex-grow flex flex-col justify-center">
                 
-                <!-- View de Login -->
                 <div id="login-view" class="space-y-6">
                     <div class="text-center">
                         <img src="https://i.imgur.com/ChsuWeL.png" alt="Logo MonIC" class="w-20 h-20 mx-auto">
@@ -68,7 +79,6 @@
                     </div>
                 </div>
 
-                <!-- View de Cadastro -->
                 <div id="register-view" class="space-y-6 hidden">
                     <div class="text-center"><h1 class="font-karla text-4xl font-bold text-gray-800">Cadastre-se</h1></div>
                     <div class="bg-white p-8 rounded-2xl shadow-lg">
@@ -82,7 +92,6 @@
                     </div>
                 </div>
 
-                <!-- View de Reset de Senha -->
                 <div id="reset-password-view" class="space-y-6 hidden">
                     <div class="text-center"><img src="https://i.imgur.com/ChsuWeL.png" alt="Logo MonIC" class="w-20 h-20 mx-auto"><h1 class="font-karla text-4xl font-bold text-gray-800 mt-4">MonIC</h1></div>
                     <div class="bg-white p-8 rounded-2xl shadow-lg">
@@ -97,7 +106,6 @@
                     </div>
                 </div>
 
-                <!-- View de Confirmação de Reset -->
                 <div id="reset-confirmation-view" class="space-y-6 hidden">
                     <div class="text-center"><img src="https://i.imgur.com/ChsuWeL.png" alt="Logo MonIC" class="w-20 h-20 mx-auto"><h1 class="font-karla text-4xl font-bold text-gray-800 mt-4">MonIC</h1></div>
                     <div class="bg-white p-8 rounded-2xl shadow-lg text-center">
@@ -120,14 +128,14 @@
         </div>
     </div>
 
-    <!-- TELA DO DASHBOARD -->
-    <div id="dashboard-screen" class="hidden min-h-screen bg-white">
-        <header class="w-full px-4 sm:px-8 py-4 border-b border-gray-200 flex items-center justify-between relative">
+    <div id="app-container" class="hidden min-h-screen bg-gray-100">
+        <header class="w-full px-4 sm:px-8 py-4 border-b border-gray-200 flex items-center justify-between relative bg-white">
             <div class="flex items-center space-x-6">
-                <div class="flex items-center space-x-2"><img src="https://i.imgur.com/ChsuWeL.png" alt="Logo MonIC" class="w-8 h-8"><span class="text-xl font-bold text-gray-800">MonIC</span></div>
-                <div><h1 class="text-2xl font-semibold text-gray-800">Início</h1><p id="user-name-display" class="text-sm text-gray-500"></p></div>
+                <div id="header-logo-container" class="flex items-center space-x-2 cursor-pointer"><img src="https://i.imgur.com/ChsuWeL.png" alt="Logo MonIC" class="w-8 h-8"><span class="text-xl font-bold text-gray-800">MonIC</span></div>
+                <div><h1 id="header-title" class="text-2xl font-semibold text-gray-800 cursor-pointer">Início</h1><p id="user-name-display" class="text-sm text-gray-500"></p></div>
             </div>
             <div class="flex items-center space-x-4">
+                 <button id="header-back-button" class="hidden flex items-center space-x-2 text-gray-600 hover:text-blue-800 border border-gray-300 px-3 py-1.5 rounded-lg"><svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M10 19l-7-7m0 0l7-7m-7 7h18" /></svg><span class="text-sm font-medium">Voltar</span></button>
                 <button id="secretaria-area-button" class="hidden text-sm font-medium text-gray-600 hover:text-blue-800 border border-gray-300 px-3 py-1.5 rounded-lg">Área da Secretaria</button>
                 <div class="relative">
                     <button id="notifications-button" class="relative flex items-center space-x-2 text-gray-600 hover:text-blue-800">
@@ -146,144 +154,129 @@
                 </button>
             </div>
         </header>
-        <main class="w-full max-w-6xl mx-auto px-4 sm:px-8 py-8">
-            <div class="mb-8 border-b border-gray-200"><nav class="-mb-px flex space-x-8" aria-label="Tabs"><a href="#" id="minhas-disciplinas-tab" class="dashboard-tab border-blue-800 text-blue-800 whitespace-nowrap py-4 px-1 border-b-2 font-medium text-sm">Minhas Disciplinas</a><a href="#" id="minha-agenda-tab" class="dashboard-tab border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300 whitespace-nowrap py-4 px-1 border-b-2 font-medium text-sm">Minha Agenda</a><a href="#" id="procurar-disciplinas-tab" class="dashboard-tab border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300 whitespace-nowrap py-4 px-1 border-b-2 font-medium text-sm">Procurar Disciplinas</a></nav></div>
-            <div id="minhas-disciplinas-view" class="dashboard-view"><div id="minhas-disciplinas-container" class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6"></div></div>
-            <div id="minha-agenda-view" class="dashboard-view hidden">
-                 <div class="bg-white border border-gray-200 rounded-xl p-6 shadow-sm">
-                    <div class="flex flex-col sm:flex-row justify-between sm:items-center mb-4">
-                        <h2 class="text-xl font-bold text-gray-800 flex items-center"><svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 mr-2 text-gray-500" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" /></svg>Próximos Eventos</h2>
-                        <div id="agenda-legend-monitor" class="hidden mt-2 sm:mt-0 flex items-center space-x-4 text-sm"><div class="flex items-center"><div class="w-4 h-4 bg-blue-800 rounded mr-2"></div>Monitor (você organiza)</div><div class="flex items-center"><div class="w-4 h-4 bg-yellow-500 rounded mr-2"></div>Aluno (você participa)</div></div>
-                    </div>
-                    <div id="proximos-eventos-container" class="space-y-4"></div>
-                </div>
-                <div class="text-center mt-8"><button id="ver-agenda-completa-btn" class="inline-flex items-center px-4 py-2 border border-gray-300 shadow-sm text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50"><svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-2 text-gray-500" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" /></svg>Ver Agenda Completa</button></div>
-            </div>
-            <div id="procurar-disciplinas-view" class="dashboard-view hidden">
-                <div class="flex justify-between items-center mb-4">
-                    <div class="relative w-full max-w-lg"><input type="text" id="search-disciplina-input" placeholder="Buscar por disciplina, código ou monitor." class="w-full h-10 pl-10 pr-4 border rounded-lg"><svg class="w-5 h-5 text-gray-400 absolute left-3 top-1/2 -translate-y-1/2" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path></svg></div>
-                    <button id="criar-monitoria-btn" class="hidden ml-4 px-4 py-2 bg-blue-800 text-white font-semibold rounded-lg whitespace-nowrap">Criar Monitoria</button>
-                </div>
-                <h2 class="text-lg font-bold text-gray-800 mt-6 mb-2">Disciplinas Disponíveis (<span id="disciplinas-disponiveis-count"></span>)</h2>
-                <div id="procurar-disciplinas-container" class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6"></div>
-            </div>
-        </main>
-    </div>
 
-    <!-- TELA DA DISCIPLINA -->
-    <div id="disciplina-screen" class="hidden min-h-screen bg-gray-100">
-        <header class="w-full bg-blue-800 text-white shadow-lg">
-            <div class="max-w-7xl mx-auto px-4 sm:px-8 py-4 flex justify-between items-center">
-                <div><button id="back-to-dashboard-from-disciplina-btn" class="flex items-center text-sm opacity-80 hover:opacity-100"><svg class="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"></path></svg>Voltar</button><h1 id="disciplina-header-title" class="text-2xl font-bold mt-1"></h1></div>
-                <button id="cancelar-inscricao-btn" class="hidden px-3 py-1.5 bg-white bg-opacity-20 rounded-lg text-sm font-semibold hover:bg-opacity-30">Cancelar Inscrição</button>
-            </div>
-        </header>
-        <main class="w-full max-w-7xl mx-auto px-4 sm:px-8 py-8">
-            <div class="bg-white p-2 rounded-xl shadow-sm border border-gray-200 flex items-center justify-center space-x-4"><button data-view="agenda-avisos" class="disciplina-tab flex-1 text-center py-3 rounded-lg font-semibold bg-gray-100 text-blue-800">Agenda e Avisos</button><button data-view="materiais" class="disciplina-tab flex-1 text-center py-3 rounded-lg font-semibold text-gray-600">Materiais</button><button data-view="participantes" class="disciplina-tab flex-1 text-center py-3 rounded-lg font-semibold text-gray-600">Participantes</button></div>
-            <div id="disciplina-views-container" class="mt-6">
-                <div id="agenda-avisos-view" class="disciplina-view space-y-6">
-                    <div>
-                        <div class="flex justify-between items-center"><h2 class="text-xl font-bold">Agenda da Disciplina</h2><button id="criar-evento-btn" class="hidden px-4 py-2 border border-gray-300 text-sm font-semibold rounded-lg hover:bg-gray-100">Criar evento de monitoria</button></div>
-                        <div id="disciplina-agenda-container" class="mt-4 grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-4"></div>
+        <div id="dashboard-screen" class="app-screen">
+            <main class="w-full max-w-6xl mx-auto px-4 sm:px-8 py-8">
+                <div class="mb-8 border-b border-gray-200"><nav class="-mb-px flex space-x-8" aria-label="Tabs"><a href="#" id="minhas-disciplinas-tab" class="dashboard-tab border-blue-800 text-blue-800 whitespace-nowrap py-4 px-1 border-b-2 font-medium text-sm">Minhas Disciplinas</a><a href="#" id="minha-agenda-tab" class="dashboard-tab border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300 whitespace-nowrap py-4 px-1 border-b-2 font-medium text-sm">Minha Agenda</a><a href="#" id="procurar-disciplinas-tab" class="dashboard-tab border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300 whitespace-nowrap py-4 px-1 border-b-2 font-medium text-sm">Procurar Disciplinas</a></nav></div>
+                <div id="minhas-disciplinas-view" class="dashboard-view"><div id="minhas-disciplinas-container" class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6"></div></div>
+                <div id="minha-agenda-view" class="dashboard-view hidden">
+                    <div class="bg-white border border-gray-200 rounded-xl p-6 shadow-sm">
+                        <div class="flex flex-col sm:flex-row justify-between sm:items-center mb-4">
+                            <h2 class="text-xl font-bold text-gray-800 flex items-center"><svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 mr-2 text-gray-500" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" /></svg>Próximos Eventos</h2>
+                            <div id="agenda-legend-monitor" class="hidden mt-2 sm:mt-0 flex items-center space-x-4 text-sm"><div class="flex items-center"><div class="w-4 h-4 bg-blue-800 rounded mr-2"></div>Monitor (você organiza)</div><div class="flex items-center"><div class="w-4 h-4 bg-yellow-500 rounded mr-2"></div>Aluno (você participa)</div></div>
+                        </div>
+                        <div id="proximos-eventos-container" class="space-y-4"></div>
                     </div>
-                    <div>
-                        <div class="flex justify-between items-center"><h2 class="text-xl font-bold">Avisos</h2><button id="notificar-btn" class="hidden px-4 py-2 border border-gray-300 text-sm font-semibold rounded-lg hover:bg-gray-100">Notificar</button></div>
-                        <div id="avisos-container" class="mt-4 space-y-4"></div>
-                    </div>
+                    <div class="text-center mt-8"><button id="ver-agenda-completa-btn" class="inline-flex items-center px-4 py-2 border border-gray-300 shadow-sm text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50"><svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-2 text-gray-500" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" /></svg>Ver Agenda Completa</button></div>
                 </div>
-                <div id="materiais-view" class="disciplina-view hidden">
-                    <div class="flex justify-between items-center mb-4"><h2 class="text-xl font-bold">Repositório de Materiais</h2><button id="adicionar-material-btn" class="hidden px-4 py-2 bg-blue-800 text-white text-sm font-semibold rounded-lg">Adicionar materiais</button></div>
-                    <div id="materiais-container" class="space-y-2"></div>
-                </div>
-                <div id="participantes-view" class="disciplina-view hidden">
+                <div id="procurar-disciplinas-view" class="dashboard-view hidden">
                     <div class="flex justify-between items-center mb-4">
-                        <h2 class="text-xl font-bold">Participantes da Monitoria</h2>
-                        <div id="participantes-actions-container">
-                            <button id="change-monitors-btn" class="hidden px-4 py-2 bg-yellow-500 text-white text-sm font-semibold rounded-lg">Mudar Monitores</button>
-                            <div id="confirm-monitors-actions" class="hidden space-x-2">
-                                <button id="confirm-monitors-btn" class="px-4 py-2 bg-green-600 text-white text-sm font-semibold rounded-lg">Confirmar</button>
-                                <button id="cancel-change-monitors-btn" class="px-4 py-2 bg-gray-500 text-white text-sm font-semibold rounded-lg">Cancelar</button>
+                        <div class="relative w-full max-w-lg"><input type="text" id="search-disciplina-input" placeholder="Buscar por disciplina, código ou monitor." class="w-full h-10 pl-10 pr-4 border rounded-lg"><svg class="w-5 h-5 text-gray-400 absolute left-3 top-1/2 -translate-y-1/2" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path></svg></div>
+                        <button id="criar-monitoria-btn" class="hidden ml-4 px-4 py-2 bg-blue-800 text-white font-semibold rounded-lg whitespace-nowrap">Criar Monitoria</button>
+                    </div>
+                    <h2 class="text-lg font-bold text-gray-800 mt-6 mb-2">Disciplinas Disponíveis (<span id="disciplinas-disponiveis-count"></span>)</h2>
+                    <div id="procurar-disciplinas-container" class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6"></div>
+                </div>
+            </main>
+        </div>
+
+        <div id="disciplina-screen" class="hidden app-screen">
+            <main class="w-full max-w-7xl mx-auto px-4 sm:px-8 py-8">
+                <div class="bg-white p-2 rounded-xl shadow-sm border border-gray-200 flex items-center justify-center space-x-4"><button data-view="agenda-avisos" class="disciplina-tab flex-1 text-center py-3 rounded-lg font-semibold bg-gray-100 text-blue-800">Agenda e Avisos</button><button data-view="materiais" class="disciplina-tab flex-1 text-center py-3 rounded-lg font-semibold text-gray-600">Materiais</button><button data-view="participantes" class="disciplina-tab flex-1 text-center py-3 rounded-lg font-semibold text-gray-600">Participantes</button></div>
+                <div id="disciplina-views-container" class="mt-6">
+                    <div id="agenda-avisos-view" class="disciplina-view space-y-6">
+                        <div>
+                            <div class="flex justify-between items-center"><h2 class="text-xl font-bold">Agenda da Disciplina</h2><button id="criar-evento-btn" class="hidden px-4 py-2 border border-gray-300 text-sm font-semibold rounded-lg hover:bg-gray-100">Criar evento de monitoria</button></div>
+                            <div id="disciplina-agenda-container" class="mt-4 grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-4"></div>
+                        </div>
+                        <div>
+                            <div class="flex justify-between items-center"><h2 class="text-xl font-bold">Avisos</h2><div class="flex items-center space-x-2"><button id="notificar-btn" class="hidden px-4 py-2 border border-gray-300 text-sm font-semibold rounded-lg hover:bg-gray-100">Notificar</button><button id="cancelar-inscricao-btn" class="hidden px-3 py-1.5 bg-red-100 text-red-800 rounded-lg text-sm font-semibold hover:bg-red-200">Cancelar Inscrição</button></div></div>
+                            <div id="avisos-container" class="mt-4 space-y-4"></div>
+                        </div>
+                    </div>
+                    <div id="materiais-view" class="disciplina-view hidden">
+                        <div class="flex justify-between items-center mb-4"><h2 class="text-xl font-bold">Repositório de Materiais</h2><button id="adicionar-material-btn" class="hidden px-4 py-2 bg-blue-800 text-white text-sm font-semibold rounded-lg">Adicionar materiais</button></div>
+                        <div id="materiais-container" class="space-y-2"></div>
+                    </div>
+                    <div id="participantes-view" class="disciplina-view hidden">
+                        <div class="flex justify-between items-center mb-4">
+                            <h2 class="text-xl font-bold">Participantes da Monitoria</h2>
+                            <div id="participantes-actions-container">
+                                <button id="change-monitors-btn" class="hidden px-4 py-2 bg-yellow-500 text-white text-sm font-semibold rounded-lg">Mudar Monitores</button>
+                                <div id="confirm-monitors-actions" class="hidden space-x-2">
+                                    <button id="confirm-monitors-btn" class="px-4 py-2 bg-green-600 text-white text-sm font-semibold rounded-lg">Confirmar</button>
+                                    <button id="cancel-change-monitors-btn" class="px-4 py-2 bg-gray-500 text-white text-sm font-semibold rounded-lg">Cancelar</button>
+                                </div>
                             </div>
                         </div>
+                        <div id="participantes-container" class="grid grid-cols-1 md:grid-cols-2 gap-4"></div>
                     </div>
-                    <div id="participantes-container" class="grid grid-cols-1 md:grid-cols-2 gap-4"></div>
                 </div>
-            </div>
-        </main>
-    </div>
+            </main>
+        </div>
 
-    <!-- TELA DA AGENDA COMPLETA -->
-    <div id="agenda-completa-screen" class="hidden min-h-screen bg-white">
-        <header class="w-full px-4 sm:px-8 py-4 border-b border-gray-200 bg-white flex items-center justify-between">
-            <div class="flex items-center space-x-6"><div class="flex items-center space-x-2"><img src="https://i.imgur.com/ChsuWeL.png" alt="Logo MonIC" class="w-8 h-8"><span class="text-xl font-bold text-gray-800">MonIC</span></div><h1 class="text-2xl font-semibold text-gray-800">Agenda Completa</h1></div>
-            <button id="back-to-dashboard-from-agenda-btn" class="flex items-center space-x-2 text-gray-600 hover:text-blue-800 border border-gray-300 px-3 py-1.5 rounded-lg"><svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M10 19l-7-7m0 0l7-7m-7 7h18" /></svg><span class="text-sm font-medium">Voltar</span></button>
-        </header>
-        <main class="w-full max-w-7xl mx-auto px-4 sm:px-8 py-8">
-            <div id="agenda-completa-legend" class="mb-4 space-y-2 sm:space-y-0 sm:flex sm:items-center sm:space-x-6 text-sm"></div>
-            <div class="bg-white p-6 rounded-xl shadow-sm border border-gray-200">
-                <div class="flex flex-col sm:flex-row items-center justify-between mb-4">
-                    <div class="flex items-center space-x-1 bg-gray-100 p-1 rounded-lg"><button id="agenda-mes-btn" class="px-3 py-1 text-sm font-semibold rounded-md text-gray-600">Mês</button><button id="agenda-semana-btn" class="px-3 py-1 text-sm font-semibold rounded-md text-gray-600">Semana</button><button id="agenda-dia-btn" class="px-3 py-1 text-sm font-semibold rounded-md text-gray-600">Dia</button></div>
-                    <div class="flex items-center space-x-4 mt-4 sm:mt-0"><button id="hoje-btn" class="px-3 py-1 text-sm font-semibold text-gray-600 border border-gray-300 rounded-md hover:bg-gray-100">Hoje</button><div class="flex items-center space-x-2"><button id="prev-period-btn" class="p-1 rounded-md hover:bg-gray-100"><svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"></path></svg></button><span id="period-display" class="text-lg font-semibold text-gray-700 min-w-[10rem] text-center"></span><button id="next-period-btn" class="p-1 rounded-md hover:bg-gray-100"><svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"></path></svg></button></div></div>
-                </div>
-                <div id="calendar-container" class="overflow-x-auto"></div>
-            </div>
-        </main>
-    </div>
-
-    <!-- TELA DA SECRETARIA -->
-    <div id="secretaria-screen" class="hidden min-h-screen bg-gray-50">
-        <header class="w-full px-4 sm:px-8 py-4 border-b border-gray-200 bg-white flex items-center justify-between">
-            <div class="flex items-center space-x-6"><div class="flex items-center space-x-2"><img src="https://i.imgur.com/ChsuWeL.png" alt="Logo MonIC" class="w-8 h-8"><span class="text-xl font-bold text-gray-800">MonIC</span></div><h1 class="text-2xl font-semibold text-gray-800">Secretaria</h1></div>
-            <button id="back-to-dashboard-button" class="flex items-center space-x-2 text-gray-600 hover:text-blue-800 border border-gray-300 px-3 py-1.5 rounded-lg"><svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M10 19l-7-7m0 0l7-7m-7 7h18" /></svg><span class="text-sm font-medium">Voltar</span></button>
-        </header>
-        <main class="w-full max-w-7xl mx-auto px-4 sm:px-8 py-8">
-            <div class="mb-8 border-b border-gray-200"><nav class="-mb-px flex space-x-8" aria-label="Tabs"><button id="solicitacoes-tab" class="border-blue-800 text-blue-800 whitespace-nowrap py-4 px-1 border-b-2 font-medium text-sm">Solicitações</button><button id="salas-tab" class="border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300 whitespace-nowrap py-4 px-1 border-b-2 font-medium text-sm">Salas e Disponibilidade</button></nav></div>
-            <div id="solicitacoes-view">
+        <div id="agenda-completa-screen" class="hidden app-screen">
+            <main class="w-full max-w-7xl mx-auto px-4 sm:px-8 py-8">
+                <div id="agenda-completa-legend" class="mb-4 space-y-2 sm:space-y-0 sm:flex sm:items-center sm:space-x-6 text-sm"></div>
                 <div class="bg-white p-6 rounded-xl shadow-sm border border-gray-200">
-                    <h2 class="text-xl font-bold text-gray-800">Solicitações de Monitorias Presenciais</h2>
-                    <p class="text-sm text-gray-500 mt-1">Lista de eventos com permissão pendente.</p>
-                    <div class="mt-6 overflow-x-auto"><table class="w-full text-sm text-left text-gray-500"><thead class="text-xs text-gray-700 uppercase bg-gray-50"><tr><th scope="col" class="px-6 py-3">Disciplina</th><th scope="col" class="px-6 py-3">Monitor</th><th scope="col" class="px-6 py-3">Sala</th><th scope="col" class="px-6 py-3">Data</th><th scope="col" class="px-6 py-3">Horário</th><th scope="col" class="px-6 py-3 text-center">Ações</th></tr></thead><tbody id="solicitacoes-table-body"></tbody></table></div>
-                </div>
-            </div>
-            <div id="salas-view" class="hidden">
-                <div class="grid grid-cols-1 xl:grid-cols-3 gap-8">
-                    <div class="bg-white p-6 rounded-xl shadow-sm border border-gray-200 xl:col-span-1 space-y-8">
-                        <div>
-                            <h2 class="text-xl font-bold text-gray-800">Nova Sala</h2>
-                            <form id="add-sala-form" class="mt-6 space-y-4">
-                                <div><label for="add-sala-nome" class="text-sm font-medium">Nome da Sala</label><input id="add-sala-nome" type="text" placeholder="Ex: LAB4" required class="mt-1 w-full h-10 px-3 border rounded-md"></div>
-                                <button type="submit" class="w-full h-12 bg-green-600 text-white font-bold rounded-lg hover:bg-green-700">Adicionar Sala</button>
-                            </form>
-                        </div>
-                        <div>
-                            <h2 class="text-xl font-bold text-gray-800">Novo Bloqueio de Sala</h2>
-                            <form id="block-form" class="mt-6 space-y-4">
-                                <div><label for="block-sala" class="text-sm font-medium">Sala</label><select id="block-sala" class="mt-1 w-full h-10 px-3 border rounded-md bg-white"></select></div>
-                                <div><label for="block-date" class="text-sm font-medium">Data</label><input id="block-date" type="date" class="mt-1 w-full h-10 px-3 border rounded-md"></div>
-                                <div><label for="block-time" class="text-sm font-medium">Horário</label><select id="block-time" class="mt-1 w-full h-10 px-3 border rounded-md bg-white"></select></div>
-                                <div><label for="block-motivo" class="text-sm font-medium">Motivo (opcional)</label><input id="block-motivo" type="text" class="mt-1 w-full h-10 px-3 border rounded-md"></div>
-                                <button type="submit" class="w-full h-12 bg-blue-800 text-white font-bold rounded-lg hover:bg-blue-900">Bloquear</button>
-                            </form>
-                        </div>
+                    <div class="flex flex-col sm:flex-row items-center justify-between mb-4">
+                        <div class="flex items-center space-x-1 bg-gray-100 p-1 rounded-lg"><button id="agenda-mes-btn" class="px-3 py-1 text-sm font-semibold rounded-md text-gray-600">Mês</button><button id="agenda-semana-btn" class="px-3 py-1 text-sm font-semibold rounded-md text-gray-600">Semana</button><button id="agenda-dia-btn" class="px-3 py-1 text-sm font-semibold rounded-md text-gray-600">Dia</button></div>
+                        <div class="flex items-center space-x-4 mt-4 sm:mt-0"><button id="hoje-btn" class="px-3 py-1 text-sm font-semibold text-gray-600 border border-gray-300 rounded-md hover:bg-gray-100">Hoje</button><div class="flex items-center space-x-2"><button id="prev-period-btn" class="p-1 rounded-md hover:bg-gray-100"><svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"></path></svg></button><span id="period-display" class="text-lg font-semibold text-gray-700 min-w-[10rem] text-center"></span><button id="next-period-btn" class="p-1 rounded-md hover:bg-gray-100"><svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"></path></svg></button></div></div>
                     </div>
-                    <div class="bg-white p-6 rounded-xl shadow-sm border border-gray-200 xl:col-span-2">
-                        <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between">
-                            <div><h2 class="text-xl font-bold text-gray-800">Disponibilidade</h2><p class="text-sm text-gray-500 mt-1">Horários livres e bloqueados de cada sala</p></div>
-                            <div class="mt-4 sm:mt-0"><label for="schedule-sala" class="text-sm font-medium">Sala</label><select id="schedule-sala" class="mt-1 w-full sm:w-auto h-10 px-3 border rounded-md bg-white"></select></div>
-                        </div>
-                        <div class="mt-4 flex items-center justify-between">
-                            <div class="flex items-center text-sm"><div class="w-4 h-4 bg-red-500 rounded mr-2"></div>Horários ocupados</div>
-                            <div class="flex items-center space-x-2"><button id="prev-week" class="p-1 rounded-md hover:bg-gray-100"><svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"></path></svg></button><span id="week-display" class="text-sm font-semibold text-gray-700 w-28 text-center"></span><button id="next-week" class="p-1 rounded-md hover:bg-gray-100"><svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"></path></svg></button></div>
-                        </div>
-                         <p class="text-xs text-gray-400 mt-2">Dica: Clique em um horário ocupado para desbloqueá-lo.</p>
-                        <div id="schedule-grid" class="mt-2 overflow-x-auto"></div>
+                    <div id="calendar-container" class="overflow-x-auto"></div>
+                </div>
+            </main>
+        </div>
+
+        <div id="secretaria-screen" class="hidden app-screen">
+            <main class="w-full max-w-7xl mx-auto px-4 sm:px-8 py-8">
+                <div class="mb-8 border-b border-gray-200"><nav class="-mb-px flex space-x-8" aria-label="Tabs"><button id="solicitacoes-tab" class="border-blue-800 text-blue-800 whitespace-nowrap py-4 px-1 border-b-2 font-medium text-sm">Solicitações</button><button id="salas-tab" class="border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300 whitespace-nowrap py-4 px-1 border-b-2 font-medium text-sm">Salas e Disponibilidade</button></nav></div>
+                <div id="solicitacoes-view">
+                    <div class="bg-white p-6 rounded-xl shadow-sm border border-gray-200">
+                        <h2 class="text-xl font-bold text-gray-800">Solicitações de Monitorias Presenciais</h2>
+                        <p class="text-sm text-gray-500 mt-1">Lista de eventos com permissão pendente.</p>
+                        <div class="mt-6 overflow-x-auto"><table class="w-full text-sm text-left text-gray-500"><thead class="text-xs text-gray-700 uppercase bg-gray-50"><tr><th scope="col" class="px-6 py-3">Disciplina</th><th scope="col" class="px-6 py-3">Monitor</th><th scope="col" class="px-6 py-3">Sala</th><th scope="col" class="px-6 py-3">Data</th><th scope="col" class="px-6 py-3">Horário</th><th scope="col" class="px-6 py-3 text-center">Ações</th></tr></thead><tbody id="solicitacoes-table-body"></tbody></table></div>
                     </div>
                 </div>
-            </div>
-        </main>
+                <div id="salas-view" class="hidden">
+                    <div class="grid grid-cols-1 xl:grid-cols-3 gap-8">
+                        <div class="bg-white p-6 rounded-xl shadow-sm border border-gray-200 xl:col-span-1 space-y-8">
+                            <div>
+                                <h2 class="text-xl font-bold text-gray-800">Nova Sala</h2>
+                                <form id="add-sala-form" class="mt-6 space-y-4">
+                                    <div><label for="add-sala-nome" class="text-sm font-medium">Nome da Sala</label><input id="add-sala-nome" type="text" placeholder="Ex: LAB4" required class="mt-1 w-full h-10 px-3 border rounded-md"></div>
+                                    <button type="submit" class="w-full h-12 bg-green-600 text-white font-bold rounded-lg hover:bg-green-700">Adicionar Sala</button>
+                                </form>
+                            </div>
+                            <div>
+                                <h2 class="text-xl font-bold text-gray-800">Novo Bloqueio de Sala</h2>
+                                <form id="block-form" class="mt-6 space-y-4">
+                                    <div><label for="block-sala" class="text-sm font-medium">Sala</label><select id="block-sala" class="mt-1 w-full h-10 px-3 border rounded-md bg-white"></select></div>
+                                    <div><label for="block-date" class="text-sm font-medium">Data</label><input id="block-date" type="date" class="mt-1 w-full h-10 px-3 border rounded-md"></div>
+                                    <div><label for="block-time" class="text-sm font-medium">Horário</label><select id="block-time" class="mt-1 w-full h-10 px-3 border rounded-md bg-white"></select></div>
+                                    <div><label for="block-motivo" class="text-sm font-medium">Motivo (opcional)</label><input id="block-motivo" type="text" class="mt-1 w-full h-10 px-3 border rounded-md"></div>
+                                    <button type="submit" class="w-full h-12 bg-blue-800 text-white font-bold rounded-lg hover:bg-blue-900">Bloquear</button>
+                                </form>
+                            </div>
+                        </div>
+                        <div class="bg-white p-6 rounded-xl shadow-sm border border-gray-200 xl:col-span-2">
+                            <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between">
+                                <div><h2 class="text-xl font-bold text-gray-800">Disponibilidade</h2><p class="text-sm text-gray-500 mt-1">Horários livres e bloqueados de cada sala</p></div>
+                                <div class="mt-4 sm:mt-0"><label for="schedule-sala" class="text-sm font-medium">Sala</label><select id="schedule-sala" class="mt-1 w-full sm:w-auto h-10 px-3 border rounded-md bg-white"></select></div>
+                            </div>
+                            <div class="mt-4 flex items-center justify-between">
+                                <div class="flex items-center text-sm"><div class="w-4 h-4 bg-red-500 rounded mr-2"></div>Horários ocupados</div>
+                                <div class="flex items-center space-x-2"><button id="prev-week" class="p-1 rounded-md hover:bg-gray-100"><svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"></path></svg></button><span id="week-display" class="text-sm font-semibold text-gray-700 w-28 text-center"></span><button id="next-week" class="p-1 rounded-md hover:bg-gray-100"><svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"></path></svg></button></div>
+                            </div>
+                            <p class="text-xs text-gray-400 mt-2">Dica: Clique em um horário ocupado para desbloqueá-lo.</p>
+                            <div id="schedule-grid" class="mt-2 overflow-x-auto"></div>
+                        </div>
+                    </div>
+                </div>
+            </main>
+        </div>
     </div>
 
-    <!-- MODAIS -->
     <div id="info-modal" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 hidden z-50">
         <div class="bg-white rounded-2xl shadow-xl max-w-md w-full p-6 relative">
             <button id="close-modal-button" class="absolute top-4 right-4 text-gray-400 hover:text-gray-800"><svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12" /></svg></button>
@@ -303,7 +296,7 @@
             <form id="criar-monitoria-form" class="mt-4 space-y-4">
                 <div><label class="text-sm">Código da Disciplina</label><input name="codigo" type="text" required class="w-full h-10 px-3 border rounded-md mt-1"></div>
                 <div><label class="text-sm">Nome da Disciplina</label><input name="nome" type="text" required class="w-full h-10 px-3 border rounded-md mt-1"></div>
-                <div><label class="text-sm">Nome do Monitor</label><input name="monitor" type="text" required class="w-full h-10 px-3 border rounded-md mt-1"></div>
+                <div><label class="text-sm">Matrícula do Monitor</label><input name="matricula" type="text" required placeholder="Ex: 22222222" class="w-full h-10 px-3 border rounded-md mt-1"></div>
                 <button type="submit" class="w-full h-12 bg-blue-800 text-white font-bold rounded-lg hover:bg-blue-900">Criar</button>
             </form>
         </div>
@@ -402,12 +395,22 @@
         let currentOpenDisciplinaId = null;
         let isEditingMonitors = false;
 
-        const allScreens = { login: document.getElementById('login-screen'), dashboard: document.getElementById('dashboard-screen'), secretaria: document.getElementById('secretaria-screen'), agendaCompleta: document.getElementById('agenda-completa-screen'), disciplina: document.getElementById('disciplina-screen') };
+        const allScreens = { 
+            login: document.getElementById('login-screen'),
+            app: document.getElementById('app-container')
+        };
+        const appScreens = {
+            dashboard: document.getElementById('dashboard-screen'), 
+            secretaria: document.getElementById('secretaria-screen'), 
+            agendaCompleta: document.getElementById('agenda-completa-screen'), 
+            disciplina: document.getElementById('disciplina-screen')
+        }
+
         const loginView = document.getElementById('login-view'), resetPasswordView = document.getElementById('reset-password-view'), resetConfirmationView = document.getElementById('reset-confirmation-view'),
               registerView = document.getElementById('register-view'), loginForm = document.getElementById('login-form'), registerForm = document.getElementById('register-form'),
               forgotPasswordLink = document.getElementById('forgot-password-link'), registerLink = document.getElementById('register-link'), backToLoginLinks = document.querySelectorAll('.back-to-login-link'),
               errorMessage = document.getElementById('error-message'), logoutButton = document.getElementById('logout-button'), infoModal = document.getElementById('info-modal'), infoButton = document.getElementById('info-button'),
-              closeModalButton = document.getElementById('close-modal-button'), secretariaAreaButton = document.getElementById('secretaria-area-button'), backToDashboardButton = document.getElementById('back-to-dashboard-button'),
+              closeModalButton = document.getElementById('close-modal-button'), secretariaAreaButton = document.getElementById('secretaria-area-button'), 
               solicitacoesTab = document.getElementById('solicitacoes-tab'), salasTab = document.getElementById('salas-tab'), solicitacoesView = document.getElementById('solicitacoes-view'),
               salasView = document.getElementById('salas-view'), notificationsButton = document.getElementById('notifications-button'), notificationsPopup = document.getElementById('notifications-popup'),
               notificationDot = document.getElementById('notification-dot'), notificationsList = document.getElementById('notifications-list'),
@@ -420,15 +423,14 @@
               minhasDisciplinasContainer = document.getElementById('minhas-disciplinas-container'), procurarDisciplinasContainer = document.getElementById('procurar-disciplinas-container'),
               procurarDisciplinasTab = document.getElementById('procurar-disciplinas-tab'),
               proximosEventosContainer = document.getElementById('proximos-eventos-container'), agendaLegendMonitor = document.getElementById('agenda-legend-monitor'),
-              verAgendaCompletaBtn = document.getElementById('ver-agenda-completa-btn'), backToDashboardFromAgendaBtn = document.getElementById('back-to-dashboard-from-agenda-btn'),
+              verAgendaCompletaBtn = document.getElementById('ver-agenda-completa-btn'),
               calendarContainer = document.getElementById('calendar-container'), periodDisplay = document.getElementById('period-display'),
               prevPeriodBtn = document.getElementById('prev-period-btn'), nextPeriodBtn = document.getElementById('next-period-btn'), agendaCompletaLegend = document.getElementById('agenda-completa-legend'),
               agendaMesBtn = document.getElementById('agenda-mes-btn'), agendaSemanaBtn = document.getElementById('agenda-semana-btn'), agendaDiaBtn = document.getElementById('agenda-dia-btn'),
               hojeBtn = document.getElementById('hoje-btn'),
-              disciplinaHeaderTitle = document.getElementById('disciplina-header-title'), cancelarInscricaoBtn = document.getElementById('cancelar-inscricao-btn'),
+              cancelarInscricaoBtn = document.getElementById('cancelar-inscricao-btn'),
               disciplinaTabs = document.querySelectorAll('.disciplina-tab'), disciplinaViews = document.querySelectorAll('.disciplina-view'),
               materiaisContainer = document.getElementById('materiais-container'), participantesContainer = document.getElementById('participantes-container'),
-              backToDashboardFromDisciplinaBtn = document.getElementById('back-to-dashboard-from-disciplina-btn'),
               criarMonitoriaBtn = document.getElementById('criar-monitoria-btn'), criarMonitoriaModal = document.getElementById('criar-monitoria-modal'),
               closeCriarMonitoriaModal = document.getElementById('close-criar-monitoria-modal'), criarMonitoriaForm = document.getElementById('criar-monitoria-form'),
               disciplinasDisponiveisCount = document.getElementById('disciplinas-disponiveis-count'), userNameDisplay = document.getElementById('user-name-display'),
@@ -452,18 +454,51 @@
               changeMonitorsBtn = document.getElementById('change-monitors-btn'),
               confirmMonitorsActions = document.getElementById('confirm-monitors-actions'),
               confirmMonitorsBtn = document.getElementById('confirm-monitors-btn'),
-              cancelChangeMonitorsBtn = document.getElementById('cancel-change-monitors-btn');
-              
-        const showScreen = (screenName) => { Object.values(allScreens).forEach(screen => screen.classList.add('hidden')); allScreens[screenName].classList.remove('hidden'); };
+              cancelChangeMonitorsBtn = document.getElementById('cancel-change-monitors-btn'),
+              loadingOverlay = document.getElementById('loading-overlay'),
+              headerTitle = document.getElementById('header-title'),
+              headerBackButton = document.getElementById('header-back-button'),
+              headerLogoContainer = document.getElementById('header-logo-container');
+
+        const timeSlots = ['07:30 - 08:20', '08:20 - 09:10', '09:20 - 10:10', '10:10 - 11:00', '11:10 - 12:00', '12:00 - 12:50', '13:30 - 14:20', '14:20 - 15:10', '15:20 - 16:10', '16:10 - 17:00', '17:10 - 18:00', '18:00 - 18:50'];
+
+        const showLoadingOverlay = () => loadingOverlay.classList.remove('hidden');
+        const hideLoadingOverlay = () => loadingOverlay.classList.add('hidden');
+
+        const showScreen = (screenName, title) => {
+            Object.values(allScreens).forEach(screen => screen.classList.add('hidden'));
+            Object.values(appScreens).forEach(screen => screen.classList.add('hidden'));
+
+            document.title = `MonIC - ${title}`;
+            headerTitle.textContent = title;
+
+            if (screenName in appScreens) {
+                allScreens.app.classList.remove('hidden');
+                appScreens[screenName].classList.remove('hidden');
+                headerBackButton.classList.toggle('hidden', screenName === 'dashboard');
+            } else if (screenName in allScreens) {
+                allScreens[screenName].classList.remove('hidden');
+            }
+        };
+
+        const goToDashboardHome = () => {
+            showScreen('dashboard', 'Início');
+            const minhasDisciplinasTab = document.getElementById('minhas-disciplinas-tab');
+            const minhasDisciplinasView = document.getElementById('minhas-disciplinas-view');
+            setActiveTab(minhasDisciplinasTab, minhasDisciplinasView, dashboardTabs, dashboardViews);
+            renderMinhasDisciplinas();
+        };
+
         const showToast = (message, type = 'success') => {
             const bgColor = type === 'success' ? 'bg-green-600' : 'bg-yellow-500';
             const toast = document.createElement('div');
-            toast.className = `p-4 rounded-lg text-white font-semibold shadow-lg toast-in ${bgColor}`;
+            toast.className = `p-4 rounded-lg text-white font-semibold shadow-lg toast-in ${bgColor} cursor-pointer`;
             toast.textContent = message;
+            toast.addEventListener('click', () => toast.remove());
             toastContainer.appendChild(toast);
             setTimeout(() => { toast.remove(); }, 3000);
         };
-        const showLoading = (isLoggingIn) => {
+        const showLoadingLogin = (isLoggingIn) => {
             loginButtonText.classList.toggle('hidden', isLoggingIn);
             loginSpinner.classList.toggle('hidden', !isLoggingIn);
             loginForm.querySelector('button[type="submit"]').disabled = isLoggingIn;
@@ -488,7 +523,7 @@
                     }
                     listenToNotificacoes();
                     await setupDashboard();
-                    showScreen('dashboard');
+                    goToDashboardHome();
                 } else {
                     await handleLogout();
                 }
@@ -497,17 +532,18 @@
                 if (unsubscribeSolicitacoes) unsubscribeSolicitacoes();
                 if (unsubscribeBloqueios) unsubscribeBloqueios();
                 if (unsubscribeNotificacoes) unsubscribeNotificacoes();
-                showScreen('login');
+                showScreen('login', 'Login');
                 loginView.classList.remove('hidden');
                 registerView.classList.add('hidden');
                 resetPasswordView.classList.add('hidden');
             }
+            hideLoadingOverlay();
         });
 
         loginForm.addEventListener('submit', async (event) => {
             event.preventDefault();
             errorMessage.classList.add('hidden');
-            showLoading(true);
+            showLoadingLogin(true);
             const email = event.target.email.value;
             const password = event.target.password.value;
             const rememberMe = event.target['remember-me'].checked;
@@ -519,7 +555,7 @@
                 errorMessage.textContent = "E-mail ou senha inválidos.";
                 errorMessage.classList.remove('hidden');
             } finally {
-                showLoading(false);
+                showLoadingLogin(false);
             }
         });
 
@@ -532,9 +568,11 @@
             try {
                 const userCredential = await createUserWithEmailAndPassword(auth, email, password);
                 const user = userCredential.user;
+                const matricula = new Date().getTime().toString().slice(-8);
                 await setDoc(doc(db, "usuarios", user.uid), {
                     nome: name,
                     email: email,
+                    matricula: matricula,
                     role: 'aluno',
                     disciplinasInscrito: []
                 });
@@ -571,7 +609,7 @@
             if (loggedInUser.role === 'secretaria') {
                 listenToSolicitacoes();
                 renderSchedule();
-                renderSalasOptions();
+                await renderSalasOptions();
             }
             await renderMinhasDisciplinas();
             await renderProcurarDisciplinas();
@@ -608,15 +646,22 @@
                     monitorDisplayNames = monitorDocs.map(md => md.exists() ? md.data().nome : '').filter(Boolean).join(', ');
                 }
                 const card = document.createElement('div');
-                card.className = "bg-white border border-gray-200 rounded-xl p-6 flex flex-col shadow-sm";
-                card.innerHTML = `<p class="text-xs font-semibold text-gray-500 uppercase">${disciplina.codigo}</p><h3 class="text-lg font-bold text-gray-900 mt-1">${disciplina.nome}</h3><p class="text-sm text-gray-600 mt-2">Monitor(es): <span class="font-medium">${monitorDisplayNames}</span></p><button data-id="${disciplina.id}" class="mt-6 w-full bg-blue-800 text-white font-bold py-2.5 px-4 rounded-lg hover:bg-blue-900">Abrir</button>`;
+                card.className = "bg-white border border-gray-200 rounded-xl p-6 flex flex-col shadow-sm h-full";
+                card.innerHTML = `
+                    <div class="flex-grow">
+                        <p class="text-xs font-semibold text-gray-500 uppercase">${disciplina.codigo}</p>
+                        <h3 class="text-lg font-bold text-gray-900 mt-1">${disciplina.nome}</h3>
+                        <p class="text-sm text-gray-600 mt-2">Monitor(es): <span class="font-medium">${monitorDisplayNames}</span></p>
+                    </div>
+                    <button data-id="${disciplina.id}" class="mt-6 w-full bg-blue-800 text-white font-bold py-2.5 px-4 rounded-lg hover:bg-blue-900">Abrir</button>
+                `;
                 card.querySelector('button').addEventListener('click', () => showDisciplinaScreen(disciplina.id));
                 minhasDisciplinasContainer.appendChild(card);
             }
         };
 
         const renderProcurarDisciplinas = async (searchTerm = '') => {
-            procurarDisciplinasContainer.innerHTML = 'Carregando...';
+            showLoadingOverlay();
             const lowerSearchTerm = searchTerm.toLowerCase();
             const disciplinasSnapshot = await getDocs(collection(db, "disciplinas"));
             const todasAsDisciplinas = disciplinasSnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
@@ -638,15 +683,23 @@
             disciplinasDisponiveisCount.textContent = filteredDisciplinas.length;
             if (filteredDisciplinas.length === 0) {
                 procurarDisciplinasContainer.innerHTML = `<p class="text-gray-500 col-span-full">Nenhuma disciplina encontrada.</p>`;
-                return;
+            } else {
+                filteredDisciplinas.forEach(d => {
+                    const isSubscribed = loggedInUser.disciplinasInscrito.includes(d.id);
+                    const card = document.createElement('div');
+                    card.className = "bg-white border border-gray-200 rounded-xl p-6 flex flex-col shadow-sm h-full";
+                    card.innerHTML = `
+                        <div class="flex-grow">
+                            <p class="text-xs font-semibold text-gray-500 uppercase">${d.codigo}</p>
+                            <h3 class="text-lg font-bold text-gray-900 mt-1">${d.nome}</h3>
+                            <p class="text-sm text-gray-600 mt-2">Monitor(es): <span class="font-medium">${d.monitorDisplayNames || 'N/A'}</span></p>
+                        </div>
+                        <button data-id="${d.id}" class="mt-6 w-full text-white font-bold py-2.5 px-4 rounded-lg ${isSubscribed ? 'bg-gray-500 hover:bg-gray-600' : 'bg-blue-800 hover:bg-blue-900'}">${isSubscribed ? 'Abrir' : 'Inscrever-se'}</button>
+                    `;
+                    procurarDisciplinasContainer.appendChild(card);
+                });
             }
-            filteredDisciplinas.forEach(d => {
-                const isSubscribed = loggedInUser.disciplinasInscrito.includes(d.id);
-                const card = document.createElement('div');
-                card.className = "bg-white border border-gray-200 rounded-xl p-6 flex flex-col shadow-sm";
-                card.innerHTML = `<p class="text-xs font-semibold text-gray-500 uppercase">${d.codigo}</p><h3 class="text-lg font-bold text-gray-900 mt-1">${d.nome}</h3><p class="text-sm text-gray-600 mt-2">Monitor(es): <span class="font-medium">${d.monitorDisplayNames || 'N/A'}</span></p><button data-id="${d.id}" class="mt-6 w-full text-white font-bold py-2.5 px-4 rounded-lg ${isSubscribed ? 'bg-gray-500 hover:bg-gray-600' : 'bg-blue-800 hover:bg-blue-900'}">${isSubscribed ? 'Abrir' : 'Inscrever-se'}</button>`;
-                procurarDisciplinasContainer.appendChild(card);
-            });
+            hideLoadingOverlay();
         };
 
         searchDisciplinaInput.addEventListener('input', (e) => {
@@ -675,16 +728,16 @@
             const formData = new FormData(e.target);
             const codigo = formData.get('codigo').toUpperCase();
             const nome = formData.get('nome');
-            const monitorNome = formData.get('monitor');
-            if (!codigo || !nome || !monitorNome) {
+            const matricula = formData.get('matricula');
+            if (!codigo || !nome || !matricula) {
                 showToast("Preencha todos os campos.", "warning");
                 return;
             }
             try {
-                const q = query(collection(db, "usuarios"), where("nome", "==", monitorNome));
+                const q = query(collection(db, "usuarios"), where("matricula", "==", matricula));
                 const monitorSnapshot = await getDocs(q);
                 if (monitorSnapshot.empty) {
-                    showToast(`Monitor "${monitorNome}" não encontrado.`, "warning");
+                    showToast(`Aluno com matrícula "${matricula}" não encontrado.`, "warning");
                     return;
                 }
                 const monitorId = monitorSnapshot.docs[0].id;
@@ -704,12 +757,15 @@
 
         const showDisciplinaScreen = async (disciplinaId) => {
             currentOpenDisciplinaId = disciplinaId;
+            showLoadingOverlay();
             try {
                 const disciplinaDoc = await getDoc(doc(db, "disciplinas", disciplinaId));
                 if (!disciplinaDoc.exists()) { showToast("Disciplina não encontrada.", "warning"); return; }
                 const disciplina = { id: disciplinaDoc.id, ...disciplinaDoc.data() };
                 const userIsMonitor = await isUserMonitorOfDisciplina(loggedInUser.id, disciplinaId);
-                disciplinaHeaderTitle.textContent = `${disciplina.codigo} - ${disciplina.nome}`;
+                
+                showScreen('disciplina', `${disciplina.codigo} - ${disciplina.nome}`);
+
                 cancelarInscricaoBtn.dataset.id = disciplinaId;
                 cancelarInscricaoBtn.classList.toggle('hidden', loggedInUser.role === 'secretaria');
                 criarEventoBtn.classList.toggle('hidden', !userIsMonitor);
@@ -725,9 +781,12 @@
                 await renderAvisos(disciplinaId);
                 await renderMateriais(disciplinaId);
                 await renderParticipantes(disciplinaId);
-                showScreen('disciplina');
             } catch (error) {
+                console.error("ERRO AO CARREGAR DISCIPLINA:", error);
                 showToast("Não foi possível carregar os dados da disciplina.", "warning");
+                goToDashboardHome();
+            } finally {
+                hideLoadingOverlay();
             }
         };
 
@@ -737,8 +796,7 @@
             try {
                 await updateDoc(userDocRef, { disciplinasInscrito: arrayRemove(disciplinaId) });
                 loggedInUser.disciplinasInscrito = loggedInUser.disciplinasInscrito.filter(id => id !== disciplinaId);
-                showScreen('dashboard');
-                await renderMinhasDisciplinas();
+                goToDashboardHome();
                 await renderProcurarDisciplinas();
                 showToast('Inscrição cancelada.');
             } catch (error) {
@@ -1095,10 +1153,9 @@
                 showToast("Ocorreu um erro.", "warning");
             }
         });
-
-        let currentDate = new Date();
+        
         const populateTimeSlots = () => {
-            const timeSlots = ['07:30 - 08:20', '08:20 - 09:10', '09:20 - 10:10', '10:10 - 11:00', '11:10 - 12:00', '12:00 - 12:50', '13:30 - 14:20', '14:20 - 15:10', '15:20 - 16:10', '16:10 - 17:00', '17:10 - 18:00', '18:00 - 18:50'];
+            blockTimeSelect.innerHTML = '';
             timeSlots.forEach(slot => { const option = document.createElement('option'); option.value = slot; option.textContent = slot; blockTimeSelect.appendChild(option); }); 
         };
 
@@ -1126,12 +1183,22 @@
                 let actionsHtml = '';
                 if (req.status === 'pendente') {
                     actionsHtml = `<button data-action="aprovar" data-id="${req.id}" class="flex items-center px-3 py-1 text-xs font-medium text-white bg-green-600 rounded-md hover:bg-green-700">Aprovar</button><button data-action="rejeitar" data-id="${req.id}" class="flex items-center px-3 py-1 text-xs font-medium text-white bg-red-600 rounded-md hover:bg-red-700">Rejeitar</button>`;
-                } else {
-                    actionsHtml = `<button data-action="desfazer" data-id="${req.id}" class="flex items-center px-3 py-1 text-xs font-medium text-gray-700 bg-gray-200 rounded-md hover:bg-gray-300">Desfazer</button>`;
                 }
                 row.className = `${statusClass} border-b`;
                 row.innerHTML = `<td class="px-6 py-4 font-medium text-gray-900">${req.disciplinaNome}</td><td class="px-6 py-4">${req.monitorNome}</td><td class="px-6 py-4">${req.sala}</td><td class="px-6 py-4">${req.data}</td><td class="px-6 py-4">${req.horario}</td><td class="px-6 py-4 flex items-center justify-center space-x-2">${actionsHtml}</td>`;
                 solicitacoesTableBody.appendChild(row);
+            });
+        };
+
+        const getTimeSlotsInRange = (startTime, endTime) => {
+            const getMinutes = timeStr => parseInt(timeStr.split(':')[0]) * 60 + parseInt(timeStr.split(':')[1]);
+            const startMinutes = getMinutes(startTime);
+            const endMinutes = getMinutes(endTime);
+            return timeSlots.filter(slot => {
+                const [slotStart, slotEnd] = slot.split(' - ');
+                const slotStartMinutes = getMinutes(slotStart);
+                const slotEndMinutes = getMinutes(slotEnd);
+                return slotStartMinutes >= startMinutes && slotEndMinutes <= endMinutes;
             });
         };
 
@@ -1149,34 +1216,50 @@
                     const dateParts = reqData.data.split('/');
                     const isoDate = `${dateParts[2]}-${dateParts[1]}-${dateParts[0]}`;
                     
-                    await addDoc(collection(db, "agendaEventos"), {
+                    const slotsToBlock = getTimeSlotsInRange(start, end);
+                    if (slotsToBlock.length === 0) {
+                        showToast("Horário inválido ou não corresponde a blocos fixos.", "warning");
+                        return;
+                    }
+
+                    const batch = writeBatch(db);
+
+                    const agendaRef = doc(collection(db, "agendaEventos"));
+                    batch.set(agendaRef, {
                         disciplinaId: reqData.disciplinaId,
                         sala: reqData.sala,
                         date: isoDate,
                         time: reqData.horario
                     });
-                    await addDoc(collection(db, "bloqueios"), {
-                        sala: reqData.sala,
-                        date: isoDate,
-                        time: reqData.horario,
-                        motivo: `Monitoria: ${reqData.disciplinaNome}`
+                    
+                    slotsToBlock.forEach(slot => {
+                        const blockRef = doc(collection(db, "bloqueios"));
+                        batch.set(blockRef, {
+                            sala: reqData.sala,
+                            date: isoDate,
+                            time: slot,
+                            motivo: `Monitoria: ${reqData.disciplinaNome}`
+                        });
                     });
-                    await updateDoc(reqRef, { status: 'aprovado' });
+                    
+                    batch.update(reqRef, { status: 'aprovado' });
+                    
+                    await batch.commit();
+
                     await createNotificationForSubscribers(reqData.disciplinaId, `Monitoria presencial agendada para ${reqData.disciplinaNome} em ${reqData.data}.`);
                     showToast('Monitoria agendada', 'success'); 
                 } 
                 if (action === 'rejeitar') { 
                     await updateDoc(reqRef, { status: 'rejeitado' }); 
                     showToast('Monitoria rejeitada', 'warning'); 
-                } 
-                if (action === 'desfazer') { 
-                    await updateDoc(reqRef, { status: 'pendente' }); 
                 }
             } catch(error) {
+                console.error(error);
                 showToast("Ocorreu um erro.", "warning");
             }
         });
 
+        let currentDate = new Date();
         const renderSchedule = () => {
             if (unsubscribeBloqueios) unsubscribeBloqueios();
             const startOfWeek = new Date(currentDate);
@@ -1192,7 +1275,7 @@
                 const blockedSlots = [];
                 querySnapshot.forEach(doc => blockedSlots.push({ id: doc.id, ...doc.data() }));
                 let gridHTML = `<table class="w-full text-center border-collapse"><thead><tr class="text-sm font-semibold text-gray-600"><th class="border p-2 w-32">Horários</th><th class="border p-2">Seg</th><th class="border p-2">Ter</th><th class="border p-2">Qua</th><th class="border p-2">Qui</th><th class="border p-2">Sex</th></tr></thead><tbody>`;
-                const timeSlots = ['07:30 - 08:20', '08:20 - 09:10', '09:20 - 10:10', '10:10 - 11:00', '11:10 - 12:00', '12:00 - 12:50', '13:30 - 14:20', '14:20 - 15:10', '15:20 - 16:10', '16:10 - 17:00', '17:10 - 18:00', '18:00 - 18:50'];
+                
                 timeSlots.forEach(time => { 
                     gridHTML += `<tr class="text-xs"><td class="border p-2 font-medium text-gray-500">${time}</td>`; 
                     for (let i = 0; i < 5; i++) { 
@@ -1238,18 +1321,23 @@
             }
         });
 
-        const renderSalasOptions = async () => {
+        const populateSalaSelect = async (selectElement) => {
             const salasSnapshot = await getDocs(collection(db, "salas"));
-            const selects = [salaSelect, scheduleSalaSelect, blockSalaSelect];
-            selects.forEach(s => s.innerHTML = '');
+            selectElement.innerHTML = '';
             salasSnapshot.forEach(doc => {
-                selects.forEach(s => {
-                    const option = document.createElement('option');
-                    option.value = doc.data().nome;
-                    option.textContent = doc.data().nome;
-                    s.appendChild(option);
-                });
+                const option = document.createElement('option');
+                option.value = doc.data().nome;
+                option.textContent = doc.data().nome;
+                selectElement.appendChild(option);
             });
+        };
+
+        const renderSalasOptions = async () => {
+            await Promise.all([
+                populateSalaSelect(salaSelect),
+                populateSalaSelect(scheduleSalaSelect),
+                populateSalaSelect(blockSalaSelect)
+            ]);
             renderSchedule();
         };
 
@@ -1323,14 +1411,14 @@
             eyeClosed.classList.toggle('hidden', !isPassword); 
         });
 
-        secretariaAreaButton.addEventListener('click', () => showScreen('secretaria'));
-        backToDashboardButton.addEventListener('click', () => showScreen('dashboard'));
+        headerLogoContainer.addEventListener('click', goToDashboardHome);
+        headerTitle.addEventListener('click', goToDashboardHome);
+        secretariaAreaButton.addEventListener('click', () => showScreen('secretaria', 'Secretaria'));
+        headerBackButton.addEventListener('click', goToDashboardHome);
         verAgendaCompletaBtn.addEventListener('click', () => { 
-            showScreen('agendaCompleta');
+            showScreen('agendaCompleta', 'Agenda Completa');
             renderAgendaCompleta();
         });
-        backToDashboardFromAgendaBtn.addEventListener('click', () => showScreen('dashboard'));
-        backToDashboardFromDisciplinaBtn.addEventListener('click', () => showScreen('dashboard'));
 
         solicitacoesTab.addEventListener('click', () => setActiveTab(solicitacoesTab, solicitacoesView, [solicitacoesTab, salasTab], [solicitacoesView, salasView]));
         salasTab.addEventListener('click', () => setActiveTab(salasTab, salasView, [solicitacoesTab, salasTab], [solicitacoesView, salasView]));
@@ -1354,6 +1442,12 @@
                 e.preventDefault();
                 const viewId = e.target.id.replace('-tab', '-view');
                 const viewToShow = document.getElementById(viewId);
+                let title = 'Início';
+                if(e.target.id === 'minha-agenda-tab') title = 'Minha Agenda';
+                if(e.target.id === 'procurar-disciplinas-tab') title = 'Procurar Disciplinas';
+                document.title = `MonIC - ${title}`;
+                headerTitle.textContent = title;
+
                 setActiveTab(e.target, viewToShow, dashboardTabs, dashboardViews);
                 if (viewId === 'minha-agenda-view') renderProximosEventos();
                 else if (viewId === 'procurar-disciplinas-view') renderProcurarDisciplinas();
@@ -1386,7 +1480,10 @@
         closeAdicionarMaterialModal.addEventListener('click', () => adicionarMaterialModal.classList.add('hidden'));
         adicionarMaterialModal.addEventListener('click', (e) => { if (e.target === adicionarMaterialModal) adicionarMaterialModal.classList.add('hidden'); });
 
-        criarEventoBtn.addEventListener('click', () => agendarMonitoriaModal.classList.remove('hidden'));
+        criarEventoBtn.addEventListener('click', async () => { 
+            await populateSalaSelect(salaSelect);
+            agendarMonitoriaModal.classList.remove('hidden');
+        });
         closeAgendarMonitoriaModal.addEventListener('click', () => agendarMonitoriaModal.classList.add('hidden'));
         agendarMonitoriaModal.addEventListener('click', (e) => { if(e.target === agendarMonitoriaModal) agendarMonitoriaModal.classList.add('hidden'); });
 
