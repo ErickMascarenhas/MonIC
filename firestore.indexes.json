@@ -15,6 +15,24 @@
       ]
     },
     {
+      "collectionGroup": "agendaEventos",
+      "queryScope": "COLLECTION",
+      "fields": [
+        {
+          "fieldPath": "disciplinaId",
+          "order": "ASCENDING"
+        },
+        {
+          "fieldPath": "status",
+          "order": "ASCENDING"
+        },
+        {
+          "fieldPath": "date",
+          "order": "ASCENDING"
+        }
+      ]
+    },
+    {
       "collectionGroup": "bloqueios",
       "queryScope": "COLLECTION",
       "fields": [
