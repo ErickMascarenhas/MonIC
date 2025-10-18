@@ -4,13 +4,14 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>MonIC - Login</title>
-    
+    <link rel="icon" type="image/png" href="https://i.imgur.com/ChsuWeL.png">
+
     <script src="https://cdn.tailwindcss.com"></script>
-    
+
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Karla:wght@700&display=swap" rel="stylesheet">
-    
+
     <style>
         body { font-family: 'Inter', sans-serif; -webkit-font-smoothing: antialiased; -moz-osx-font-smoothing: grayscale; }
         .font-karla { font-family: 'Karla', sans-serif; }
@@ -26,6 +27,14 @@
             animation: spin 1s linear infinite;
         }
         @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
+        .local-loading-spinner {
+            border: 4px solid #f3f3f3;
+            border-top: 4px solid #3b82f6;
+            border-radius: 50%;
+            width: 30px;
+            height: 30px;
+            animation: spin 1s linear infinite;
+        }
     </style>
 </head>
 <body class="bg-gray-50">
@@ -39,7 +48,7 @@
     <div id="login-screen" class="hidden min-h-screen flex bg-gradient-to-br from-gray-50 to-gray-200">
         <div class="flex-1 flex flex-col items-center justify-center p-4 sm:p-8 relative">
             <div class="w-full max-w-md flex-grow flex flex-col justify-center">
-                
+
                 <div id="login-view" class="space-y-6">
                     <div class="text-center">
                         <img src="https://i.imgur.com/ChsuWeL.png" alt="Logo MonIC" class="w-20 h-20 mx-auto">
@@ -84,8 +93,10 @@
                     <div class="bg-white p-8 rounded-2xl shadow-lg">
                         <form id="register-form" class="space-y-6">
                             <div class="space-y-2"><label for="register-name" class="text-sm font-medium text-gray-700">Nome Completo</label><input id="register-name" name="name" type="text" required placeholder="Seu nome" class="w-full h-12 px-4 border rounded-lg"></div>
-                            <div class="space-y-2"><label for="register-email" class="text-sm font-medium text-gray-700">E-mail</label><input id="register-email" name="email" type="email" required placeholder="Seu e-mail institucional" pattern=".*@ic\.ufal\.br" title="O e-mail deve terminar com @ic.ufal.br" class="w-full h-12 px-4 border rounded-lg"></div>
+                            <div class="space-y-2"><label for="register-matricula" class="text-sm font-medium text-gray-700">Número de Matrícula</label><input id="register-matricula" name="matricula" type="text" required placeholder="20221001" pattern="^2[0-9]{7}$" maxlength="8" title="O número de matrícula deve ter 8 dígitos e começar com '2'" class="w-full h-12 px-4 border rounded-lg"></div>
+                            <div class="space-y-2"><label for="register-email" class="text-sm font-medium text-gray-700">E-mail</label><input id="register-email" name="email" type="email" required placeholder="seuemail@ic.ufal.br" pattern=".*@ic\.ufal\.br" title="O e-mail deve terminar com @ic.ufal.br" class="w-full h-12 px-4 border rounded-lg"></div>
                             <div class="space-y-2"><label for="register-password" class="text-sm font-medium text-gray-700">Senha</label><input id="register-password" name="password" type="password" required placeholder="Crie uma senha" class="w-full h-12 px-4 border rounded-lg"></div>
+                            <div class="space-y-2"><label for="register-confirm-password" class="text-sm font-medium text-gray-700">Confirmar Senha</label><input id="register-confirm-password" name="confirm-password" type="password" required placeholder="Confirme sua senha" class="w-full h-12 px-4 border rounded-lg"></div>
                             <button type="submit" class="w-full h-12 bg-blue-800 text-white font-bold rounded-lg hover:bg-blue-900 transition">Cadastrar</button>
                             <button type="button" class="back-to-login-link w-full h-12 bg-transparent text-gray-800 font-bold border rounded-lg hover:bg-gray-100 transition">Voltar ao login</button>
                         </form>
@@ -169,20 +180,32 @@
                     </div>
                     <div class="text-center mt-8"><button id="ver-agenda-completa-btn" class="inline-flex items-center px-4 py-2 border border-gray-300 shadow-sm text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50"><svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-2 text-gray-500" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" /></svg>Ver Agenda Completa</button></div>
                 </div>
-                <div id="procurar-disciplinas-view" class="dashboard-view hidden">
-                    <div class="flex justify-between items-center mb-4">
-                        <div class="relative w-full max-w-lg"><input type="text" id="search-disciplina-input" placeholder="Buscar por disciplina, código ou monitor." class="w-full h-10 pl-10 pr-4 border rounded-lg"><svg class="w-5 h-5 text-gray-400 absolute left-3 top-1/2 -translate-y-1/2" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path></svg></div>
-                        <button id="criar-monitoria-btn" class="hidden ml-4 px-4 py-2 bg-blue-800 text-white font-semibold rounded-lg whitespace-nowrap">Criar Monitoria</button>
+                <div id="procurar-disciplinas-view" class="dashboard-view hidden relative">
+                    <div id="procurar-disciplinas-content">
+                        <div class="flex justify-between items-center mb-4">
+                            <div class="relative w-full max-w-lg"><input type="text" id="search-disciplina-input" placeholder="Buscar por disciplina, código ou monitor." class="w-full h-10 pl-10 pr-4 border rounded-lg"><svg class="w-5 h-5 text-gray-400 absolute left-3 top-1/2 -translate-y-1/2" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path></svg></div>
+                            <button id="criar-monitoria-btn" class="hidden ml-4 px-4 py-2 bg-blue-800 text-white font-semibold rounded-lg whitespace-nowrap">Criar Monitoria</button>
+                        </div>
+                        <h2 class="text-lg font-bold text-gray-800 mt-6 mb-2">Disciplinas Disponíveis (<span id="disciplinas-disponiveis-count"></span>)</h2>
+                        <div id="procurar-disciplinas-container" class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6"></div>
                     </div>
-                    <h2 class="text-lg font-bold text-gray-800 mt-6 mb-2">Disciplinas Disponíveis (<span id="disciplinas-disponiveis-count"></span>)</h2>
-                    <div id="procurar-disciplinas-container" class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6"></div>
+                     <div id="procurar-disciplinas-loading" class="absolute inset-0 flex items-center justify-center z-50 hidden rounded-xl">
+                        <div class="local-loading-spinner"></div>
+                    </div>
                 </div>
             </main>
         </div>
 
         <div id="disciplina-screen" class="hidden app-screen">
             <main class="w-full max-w-7xl mx-auto px-4 sm:px-8 py-8">
-                <div class="bg-white p-2 rounded-xl shadow-sm border border-gray-200 flex items-center justify-center space-x-4"><button data-view="agenda-avisos" class="disciplina-tab flex-1 text-center py-3 rounded-lg font-semibold bg-gray-100 text-blue-800">Agenda e Avisos</button><button data-view="materiais" class="disciplina-tab flex-1 text-center py-3 rounded-lg font-semibold text-gray-600">Materiais</button><button data-view="participantes" class="disciplina-tab flex-1 text-center py-3 rounded-lg font-semibold text-gray-600">Participantes</button></div>
+                <div class="flex justify-between items-center mb-6">
+                    <div class="flex space-x-2">
+                        <button id="edit-disciplina-btn" class="hidden px-3 py-1.5 bg-gray-100 text-gray-800 rounded-lg text-sm font-semibold hover:bg-gray-200">Editar Disciplina</button>
+                        <button id="delete-disciplina-btn" class="hidden px-3 py-1.5 bg-red-100 text-red-800 rounded-lg text-sm font-semibold hover:bg-red-200">Apagar Disciplina</button>
+                    </div>
+                    <div class="flex items-center space-x-2"><button id="cancelar-inscricao-btn" class="hidden px-3 py-1.5 bg-red-100 text-red-800 rounded-lg text-sm font-semibold hover:bg-red-200">Cancelar Inscrição</button></div>
+                </div>
+                <div class="bg-white p-2 rounded-xl shadow-sm border border-gray-200 flex items-center justify-center space-x-4"><button data-view="agenda-avisos" class="disciplina-tab flex-1 text-center py-3 rounded-lg font-semibold text-gray-600">Agenda e Avisos</button><button data-view="materiais" class="disciplina-tab flex-1 text-center py-3 rounded-lg font-semibold text-gray-600">Materiais</button><button data-view="participantes" class="disciplina-tab flex-1 text-center py-3 rounded-lg font-semibold text-gray-600">Participantes</button></div>
                 <div id="disciplina-views-container" class="mt-6">
                     <div id="agenda-avisos-view" class="disciplina-view space-y-6">
                         <div>
@@ -190,7 +213,7 @@
                             <div id="disciplina-agenda-container" class="mt-4 grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-4"></div>
                         </div>
                         <div>
-                            <div class="flex justify-between items-center"><h2 class="text-xl font-bold">Avisos</h2><div class="flex items-center space-x-2"><button id="notificar-btn" class="hidden px-4 py-2 border border-gray-300 text-sm font-semibold rounded-lg hover:bg-gray-100">Notificar</button><button id="cancelar-inscricao-btn" class="hidden px-3 py-1.5 bg-red-100 text-red-800 rounded-lg text-sm font-semibold hover:bg-red-200">Cancelar Inscrição</button></div></div>
+                            <div class="flex justify-between items-center"><h2 class="text-xl font-bold">Avisos</h2><div class="flex items-center space-x-2"><button id="notificar-btn" class="hidden px-4 py-2 border border-gray-300 text-sm font-semibold rounded-lg hover:bg-gray-100">Notificar</button></div></div>
                             <div id="avisos-container" class="mt-4 space-y-4"></div>
                         </div>
                     </div>
@@ -202,6 +225,7 @@
                         <div class="flex justify-between items-center mb-4">
                             <h2 class="text-xl font-bold">Participantes da Monitoria</h2>
                             <div id="participantes-actions-container">
+                                <button id="add-monitor-btn" class="hidden px-4 py-2 bg-blue-800 text-white text-sm font-semibold rounded-lg">Adicionar Monitor</button>
                                 <button id="change-monitors-btn" class="hidden px-4 py-2 bg-yellow-500 text-white text-sm font-semibold rounded-lg">Mudar Monitores</button>
                                 <div id="confirm-monitors-actions" class="hidden space-x-2">
                                     <button id="confirm-monitors-btn" class="px-4 py-2 bg-green-600 text-white text-sm font-semibold rounded-lg">Confirmar</button>
@@ -289,6 +313,18 @@
         </div>
     </div>
     
+    <div id="edit-disciplina-modal" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 hidden z-50">
+        <div class="bg-white rounded-2xl shadow-xl max-w-lg w-full p-6 relative">
+            <button id="close-edit-disciplina-modal" class="absolute top-4 right-4 text-gray-400 hover:text-gray-800"><svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12" /></svg></button>
+            <h2 class="text-lg font-bold text-gray-900">Editar Disciplina</h2>
+            <form id="edit-disciplina-form" class="mt-4 space-y-4">
+                <div><label class="text-sm">Código da Disciplina</label><input name="codigo" type="text" required class="w-full h-10 px-3 border rounded-md mt-1"></div>
+                <div><label class="text-sm">Nome da Disciplina</label><input name="nome" type="text" required class="w-full h-10 px-3 border rounded-md mt-1"></div>
+                <button type="submit" class="w-full h-12 bg-green-600 text-white font-bold rounded-lg hover:bg-green-700">Salvar Alterações</button>
+            </form>
+        </div>
+    </div>
+
     <div id="criar-monitoria-modal" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 hidden z-50">
         <div class="bg-white rounded-2xl shadow-xl max-w-lg w-full p-6 relative">
             <button id="close-criar-monitoria-modal" class="absolute top-4 right-4 text-gray-400 hover:text-gray-800"><svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12" /></svg></button>
@@ -296,8 +332,20 @@
             <form id="criar-monitoria-form" class="mt-4 space-y-4">
                 <div><label class="text-sm">Código da Disciplina</label><input name="codigo" type="text" required class="w-full h-10 px-3 border rounded-md mt-1"></div>
                 <div><label class="text-sm">Nome da Disciplina</label><input name="nome" type="text" required class="w-full h-10 px-3 border rounded-md mt-1"></div>
-                <div><label class="text-sm">Matrícula do Monitor</label><input name="matricula" type="text" required placeholder="Ex: 22222222" class="w-full h-10 px-3 border rounded-md mt-1"></div>
                 <button type="submit" class="w-full h-12 bg-blue-800 text-white font-bold rounded-lg hover:bg-blue-900">Criar</button>
+            </form>
+        </div>
+    </div>
+
+    <div id="adicionar-monitor-modal" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 hidden z-50">
+        <div class="bg-white rounded-2xl shadow-xl max-w-md w-full p-6 relative">
+            <button id="close-adicionar-monitor-modal" class="absolute top-4 right-4 text-gray-400 hover:text-gray-800"><svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12" /></svg></button>
+            <h2 class="text-lg font-bold text-gray-900">Adicionar Monitor</h2>
+            <p class="text-sm text-gray-500">Insira o nome completo, e-mail ou matrícula do aluno.</p>
+            <form id="adicionar-monitor-form" class="mt-4 space-y-4">
+                <div><label for="monitor-search-input" class="text-sm font-medium text-gray-700">Buscar Aluno</label><input id="monitor-search-input" name="search" type="text" required class="w-full h-10 px-3 border rounded-md mt-1" placeholder="Nome, E-mail ou Matrícula"></div>
+                <p id="monitor-search-result" class="text-sm text-gray-600 hidden"></p>
+                <button type="submit" id="add-monitor-submit" class="w-full h-12 bg-blue-800 text-white font-bold rounded-lg hover:bg-blue-900">Adicionar</button>
             </form>
         </div>
     </div>
@@ -339,6 +387,21 @@
                 <textarea name="aviso" class="w-full h-32 p-3 border rounded-md" placeholder="Escreva aqui um aviso para sua turma"></textarea>
                 <button type="submit" class="w-full h-12 bg-blue-800 text-white font-bold rounded-lg hover:bg-blue-900 mt-4">Enviar</button>
             </form>
+        </div>
+    </div>
+    
+    <div id="evento-detalhe-modal" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 hidden z-50">
+        <div class="bg-white rounded-2xl shadow-xl max-w-md w-full p-6 relative">
+            <button id="close-evento-detalhe-modal" class="absolute top-4 right-4 text-gray-400 hover:text-gray-800"><svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12" /></svg></button>
+            <h2 class="text-xl font-bold text-gray-900 mb-4">Detalhes do Evento</h2>
+            <p id="evento-disciplina" class="text-sm text-gray-500 mb-3"></p>
+            <div class="space-y-3">
+                <p id="evento-data-hora" class="text-md font-medium text-gray-800 flex items-center"><svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-2 text-blue-600" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" /></svg>Data e Horário</p>
+                <p id="evento-local" class="text-md font-medium text-gray-800 flex items-center"><svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-2 text-blue-600" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.828 0l-4.243-4.243a8 8 0 1111.314 0z" /><path stroke-linecap="round" stroke-linejoin="round" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" /></svg>Local</p>
+                <p id="evento-status" class="text-md font-medium text-gray-800 flex items-center"><svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-2 text-blue-600" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>Status</p>
+            </div>
+            <button id="interesse-btn" data-evento-id="" class="mt-6 w-full h-10 text-white font-bold rounded-lg transition duration-150"></button>
+            <p id="interessados-count" class="text-sm text-center text-gray-500 mt-3"></p>
         </div>
     </div>
 
@@ -394,6 +457,8 @@
         let unsubscribeNotificacoes = null;
         let currentOpenDisciplinaId = null;
         let isEditingMonitors = false;
+        let currentDisciplinaMonitores = [];
+        let currentSearchController = null;
 
         const allScreens = { 
             login: document.getElementById('login-screen'),
@@ -407,63 +472,88 @@
         }
 
         const loginView = document.getElementById('login-view'), resetPasswordView = document.getElementById('reset-password-view'), resetConfirmationView = document.getElementById('reset-confirmation-view'),
-              registerView = document.getElementById('register-view'), loginForm = document.getElementById('login-form'), registerForm = document.getElementById('register-form'),
-              forgotPasswordLink = document.getElementById('forgot-password-link'), registerLink = document.getElementById('register-link'), backToLoginLinks = document.querySelectorAll('.back-to-login-link'),
-              errorMessage = document.getElementById('error-message'), logoutButton = document.getElementById('logout-button'), infoModal = document.getElementById('info-modal'), infoButton = document.getElementById('info-button'),
-              closeModalButton = document.getElementById('close-modal-button'), secretariaAreaButton = document.getElementById('secretaria-area-button'), 
-              solicitacoesTab = document.getElementById('solicitacoes-tab'), salasTab = document.getElementById('salas-tab'), solicitacoesView = document.getElementById('solicitacoes-view'),
-              salasView = document.getElementById('salas-view'), notificationsButton = document.getElementById('notifications-button'), notificationsPopup = document.getElementById('notifications-popup'),
-              notificationDot = document.getElementById('notification-dot'), notificationsList = document.getElementById('notifications-list'),
-              blockForm = document.getElementById('block-form'), scheduleGrid = document.getElementById('schedule-grid'),
-              weekDisplay = document.getElementById('week-display'), prevWeekBtn = document.getElementById('prev-week'), nextWeekBtn = document.getElementById('next-week'),
-              scheduleSalaSelect = document.getElementById('schedule-sala'), blockTimeSelect = document.getElementById('block-time'), solicitacoesTableBody = document.getElementById('solicitacoes-table-body'),
-              toastContainer = document.getElementById('toast-container'), togglePasswordBtn = document.getElementById('toggle-password'), passwordInput = document.getElementById('password'),
-              eyeOpen = document.getElementById('eye-open'), eyeClosed = document.getElementById('eye-closed'),
-              dashboardTabs = document.querySelectorAll('.dashboard-tab'), dashboardViews = document.querySelectorAll('.dashboard-view'),
-              minhasDisciplinasContainer = document.getElementById('minhas-disciplinas-container'), procurarDisciplinasContainer = document.getElementById('procurar-disciplinas-container'),
-              procurarDisciplinasTab = document.getElementById('procurar-disciplinas-tab'),
-              proximosEventosContainer = document.getElementById('proximos-eventos-container'), agendaLegendMonitor = document.getElementById('agenda-legend-monitor'),
-              verAgendaCompletaBtn = document.getElementById('ver-agenda-completa-btn'),
-              calendarContainer = document.getElementById('calendar-container'), periodDisplay = document.getElementById('period-display'),
-              prevPeriodBtn = document.getElementById('prev-period-btn'), nextPeriodBtn = document.getElementById('next-period-btn'), agendaCompletaLegend = document.getElementById('agenda-completa-legend'),
-              agendaMesBtn = document.getElementById('agenda-mes-btn'), agendaSemanaBtn = document.getElementById('agenda-semana-btn'), agendaDiaBtn = document.getElementById('agenda-dia-btn'),
-              hojeBtn = document.getElementById('hoje-btn'),
-              cancelarInscricaoBtn = document.getElementById('cancelar-inscricao-btn'),
-              disciplinaTabs = document.querySelectorAll('.disciplina-tab'), disciplinaViews = document.querySelectorAll('.disciplina-view'),
-              materiaisContainer = document.getElementById('materiais-container'), participantesContainer = document.getElementById('participantes-container'),
-              criarMonitoriaBtn = document.getElementById('criar-monitoria-btn'), criarMonitoriaModal = document.getElementById('criar-monitoria-modal'),
-              closeCriarMonitoriaModal = document.getElementById('close-criar-monitoria-modal'), criarMonitoriaForm = document.getElementById('criar-monitoria-form'),
-              disciplinasDisponiveisCount = document.getElementById('disciplinas-disponiveis-count'), userNameDisplay = document.getElementById('user-name-display'),
-              disciplinaAgendaContainer = document.getElementById('disciplina-agenda-container'), searchDisciplinaInput = document.getElementById('search-disciplina-input'),
-              criarEventoBtn = document.getElementById('criar-evento-btn'), notificarBtn = document.getElementById('notificar-btn'),
-              agendarMonitoriaModal = document.getElementById('agendar-monitoria-modal'), notificarModal = document.getElementById('notificar-modal'),
-              closeAgendarMonitoriaModal = document.getElementById('close-agendar-monitoria-modal'), closeNotificarModal = document.getElementById('close-notificar-modal'),
-              agendarMonitoriaForm = document.getElementById('agendar-monitoria-form'), notificarForm = document.getElementById('notificar-form'),
-              avisosContainer = document.getElementById('avisos-container'),
-              loginButtonText = document.getElementById('login-button-text'), loginSpinner = document.getElementById('login-spinner'),
-              adicionarMaterialBtn = document.getElementById('adicionar-material-btn'),
-              adicionarMaterialModal = document.getElementById('adicionar-material-modal'),
-              closeAdicionarMaterialModal = document.getElementById('close-adicionar-material-modal'),
-              adicionarMaterialForm = document.getElementById('adicionar-material-form'),
-              seraPresencialCheckbox = document.getElementById('sera-presencial'),
-              salaInputContainer = document.getElementById('sala-input-container'),
-              salaSelect = document.getElementById('sala-select'),
-              addSalaForm = document.getElementById('add-sala-form'),
-              blockSalaSelect = document.getElementById('block-sala'),
-              participantesActionsContainer = document.getElementById('participantes-actions-container'),
-              changeMonitorsBtn = document.getElementById('change-monitors-btn'),
-              confirmMonitorsActions = document.getElementById('confirm-monitors-actions'),
-              confirmMonitorsBtn = document.getElementById('confirm-monitors-btn'),
-              cancelChangeMonitorsBtn = document.getElementById('cancel-change-monitors-btn'),
-              loadingOverlay = document.getElementById('loading-overlay'),
-              headerTitle = document.getElementById('header-title'),
-              headerBackButton = document.getElementById('header-back-button'),
-              headerLogoContainer = document.getElementById('header-logo-container');
+            registerView = document.getElementById('register-view'), loginForm = document.getElementById('login-form'), registerForm = document.getElementById('register-form'),
+            forgotPasswordLink = document.getElementById('forgot-password-link'), registerLink = document.getElementById('register-link'), backToLoginLinks = document.querySelectorAll('.back-to-login-link'),
+            errorMessage = document.getElementById('error-message'), logoutButton = document.getElementById('logout-button'), infoModal = document.getElementById('info-modal'), infoButton = document.getElementById('info-button'),
+            closeModalButton = document.getElementById('close-modal-button'), secretariaAreaButton = document.getElementById('secretaria-area-button'), 
+            solicitacoesTab = document.getElementById('solicitacoes-tab'), salasTab = document.getElementById('salas-tab'), solicitacoesView = document.getElementById('solicitacoes-view'),
+            salasView = document.getElementById('salas-view'), notificationsButton = document.getElementById('notifications-button'), notificationsPopup = document.getElementById('notifications-popup'),
+            notificationDot = document.getElementById('notification-dot'), notificationsList = document.getElementById('notifications-list'),
+            blockForm = document.getElementById('block-form'), scheduleGrid = document.getElementById('schedule-grid'),
+            weekDisplay = document.getElementById('week-display'), prevWeekBtn = document.getElementById('prev-week'), nextWeekBtn = document.getElementById('next-week'),
+            scheduleSalaSelect = document.getElementById('schedule-sala'), blockTimeSelect = document.getElementById('block-time'), solicitacoesTableBody = document.getElementById('solicitacoes-table-body'),
+            toastContainer = document.getElementById('toast-container'), togglePasswordBtn = document.getElementById('toggle-password'), passwordInput = document.getElementById('password'),
+            eyeOpen = document.getElementById('eye-open'), eyeClosed = document.getElementById('eye-closed'),
+            dashboardTabs = document.querySelectorAll('.dashboard-tab'), dashboardViews = document.querySelectorAll('.dashboard-view'),
+            minhasDisciplinasContainer = document.getElementById('minhas-disciplinas-container'), procurarDisciplinasContainer = document.getElementById('procurar-disciplinas-container'),
+            procurarDisciplinasTab = document.getElementById('procurar-disciplinas-tab'),
+            proximosEventosContainer = document.getElementById('proximos-eventos-container'), agendaLegendMonitor = document.getElementById('agenda-legend-monitor'),
+            verAgendaCompletaBtn = document.getElementById('ver-agenda-completa-btn'),
+            calendarContainer = document.getElementById('calendar-container'), periodDisplay = document.getElementById('period-display'),
+            prevPeriodBtn = document.getElementById('prev-period-btn'), nextPeriodBtn = document.getElementById('next-period-btn'), agendaCompletaLegend = document.getElementById('agenda-completa-legend'),
+            agendaMesBtn = document.getElementById('agenda-mes-btn'), agendaSemanaBtn = document.getElementById('agenda-semana-btn'), agendaDiaBtn = document.getElementById('agenda-dia-btn'),
+            hojeBtn = document.getElementById('hoje-btn'),
+            cancelarInscricaoBtn = document.getElementById('cancelar-inscricao-btn'),
+            disciplinaTabs = document.querySelectorAll('.disciplina-tab'), disciplinaViews = document.querySelectorAll('.disciplina-view'),
+            materiaisContainer = document.getElementById('materiais-container'), participantesContainer = document.getElementById('participantes-container'),
+            criarMonitoriaBtn = document.getElementById('criar-monitoria-btn'), criarMonitoriaModal = document.getElementById('criar-monitoria-modal'),
+            closeCriarMonitoriaModal = document.getElementById('close-criar-monitoria-modal'), criarMonitoriaForm = document.getElementById('criar-monitoria-form'),
+            disciplinasDisponiveisCount = document.getElementById('disciplinas-disponiveis-count'), userNameDisplay = document.getElementById('user-name-display'),
+            disciplinaAgendaContainer = document.getElementById('disciplina-agenda-container'), searchDisciplinaInput = document.getElementById('search-disciplina-input'),
+            criarEventoBtn = document.getElementById('criar-evento-btn'), notificarBtn = document.getElementById('notificar-btn'),
+            agendarMonitoriaModal = document.getElementById('agendar-monitoria-modal'), notificarModal = document.getElementById('notificar-modal'),
+            closeAgendarMonitoriaModal = document.getElementById('close-agendar-monitoria-modal'), closeNotificarModal = document.getElementById('close-notificar-modal'),
+            agendarMonitoriaForm = document.getElementById('agendar-monitoria-form'), notificarForm = document.getElementById('notificar-form'),
+            avisosContainer = document.getElementById('avisos-container'),
+            loginButtonText = document.getElementById('login-button-text'), loginSpinner = document.getElementById('login-spinner'),
+            adicionarMaterialBtn = document.getElementById('adicionar-material-btn'),
+            adicionarMaterialModal = document.getElementById('adicionar-material-modal'),
+            closeAdicionarMaterialModal = document.getElementById('close-adicionar-material-modal'),
+            adicionarMaterialForm = document.getElementById('adicionar-material-form'),
+            seraPresencialCheckbox = document.getElementById('sera-presencial'),
+            salaInputContainer = document.getElementById('sala-input-container'),
+            salaSelect = document.getElementById('sala-select'),
+            addSalaForm = document.getElementById('add-sala-form'),
+            blockSalaSelect = document.getElementById('block-sala'),
+            participantesActionsContainer = document.getElementById('participantes-actions-container'),
+            changeMonitorsBtn = document.getElementById('change-monitors-btn'),
+            confirmMonitorsActions = document.getElementById('confirm-monitors-actions'),
+            confirmMonitorsBtn = document.getElementById('confirm-monitors-btn'),
+            cancelChangeMonitorsBtn = document.getElementById('cancel-change-monitors-btn'),
+            loadingOverlay = document.getElementById('loading-overlay'),
+            headerTitle = document.getElementById('header-title'),
+            headerBackButton = document.getElementById('header-back-button'),
+            headerLogoContainer = document.getElementById('header-logo-container'),
+            addMonitorBtn = document.getElementById('add-monitor-btn'),
+            adicionarMonitorModal = document.getElementById('adicionar-monitor-modal'),
+            closeAdicionarMonitorModal = document.getElementById('close-adicionar-monitor-modal'),
+            adicionarMonitorForm = document.getElementById('adicionar-monitor-form'),
+            monitorSearchResult = document.getElementById('monitor-search-result'),
+            addMonitorSubmit = document.getElementById('add-monitor-submit'),
+            deleteDisciplinaBtn = document.getElementById('delete-disciplina-btn'),
+            eventoDetalheModal = document.getElementById('evento-detalhe-modal'),
+            closeEventoDetalheModal = document.getElementById('close-evento-detalhe-modal'),
+            interesseBtn = document.getElementById('interesse-btn'),
+            interessadosCount = document.getElementById('interessados-count'),
+            procurarDisciplinasLoading = document.getElementById('procurar-disciplinas-loading'),
+            editDisciplinaBtn = document.getElementById('edit-disciplina-btn'),
+            editDisciplinaModal = document.getElementById('edit-disciplina-modal'),
+            closeEditDisciplinaModal = document.getElementById('close-edit-disciplina-modal'),
+            editDisciplinaForm = document.getElementById('edit-disciplina-form');
 
         const timeSlots = ['07:30 - 08:20', '08:20 - 09:10', '09:20 - 10:10', '10:10 - 11:00', '11:10 - 12:00', '12:00 - 12:50', '13:30 - 14:20', '14:20 - 15:10', '15:20 - 16:10', '16:10 - 17:00', '17:10 - 18:00', '18:00 - 18:50'];
 
         const showLoadingOverlay = () => loadingOverlay.classList.remove('hidden');
         const hideLoadingOverlay = () => loadingOverlay.classList.add('hidden');
+        const showLocalLoading = () => procurarDisciplinasLoading.classList.remove('hidden');
+        const hideLocalLoading = () => procurarDisciplinasLoading.classList.add('hidden');
+
+        const getScreenTitle = (tabId) => {
+            if (tabId === 'minhas-disciplinas-tab') return 'Início';
+            if (tabId === 'minha-agenda-tab') return 'Início';
+            if (tabId === 'procurar-disciplinas-tab') return 'Início';
+            return 'Início';
+        }
 
         const showScreen = (screenName, title) => {
             Object.values(allScreens).forEach(screen => screen.classList.add('hidden'));
@@ -490,7 +580,7 @@
         };
 
         const showToast = (message, type = 'success') => {
-            const bgColor = type === 'success' ? 'bg-green-600' : 'bg-yellow-500';
+            const bgColor = type === 'success' ? 'bg-green-600' : (type === 'error' ? 'bg-red-600' : 'bg-yellow-500');
             const toast = document.createElement('div');
             toast.className = `p-4 rounded-lg text-white font-semibold shadow-lg toast-in ${bgColor} cursor-pointer`;
             toast.textContent = message;
@@ -509,6 +599,16 @@
             const month = String(date.getMonth() + 1).padStart(2, '0'); 
             const day = String(date.getDate()).padStart(2, '0'); 
             return `${year}-${month}-${day}`; 
+        };
+        const emailIsUnique = async (email) => {
+            const q = query(collection(db, "usuarios"), where("email", "==", email));
+            const snapshot = await getDocs(q);
+            return snapshot.empty;
+        };
+        const matriculaIsUnique = async (matricula) => {
+            const q = query(collection(db, "usuarios"), where("matricula", "==", matricula));
+            const snapshot = await getDocs(q);
+            return snapshot.empty;
         };
 
         onAuthStateChanged(auth, async (user) => {
@@ -564,11 +664,32 @@
             errorMessage.classList.add('hidden');
             const name = e.target.name.value;
             const email = e.target.email.value;
+            const matricula = e.target.matricula.value;
             const password = e.target.password.value;
+            const confirmPassword = e.target['confirm-password'].value;
+
+            if (password !== confirmPassword) {
+                showToast("As senhas não coincidem.", "error");
+                return;
+            }
+            if (!/^2\d{7}$/.test(matricula)) {
+                 showToast("Matrícula inválida. Deve ter 8 dígitos e começar com '2'.", "error");
+                 return;
+            }
+            
             try {
+                if (!(await emailIsUnique(email))) {
+                    showToast("E-mail já cadastrado.", "error");
+                    return;
+                }
+                if (!(await matriculaIsUnique(matricula))) {
+                    showToast("Matrícula inválida. Já existe um usuário com esta matrícula.", "error");
+                    return;
+                }
+
                 const userCredential = await createUserWithEmailAndPassword(auth, email, password);
                 const user = userCredential.user;
-                const matricula = new Date().getTime().toString().slice(-8);
+                
                 await setDoc(doc(db, "usuarios", user.uid), {
                     nome: name,
                     email: email,
@@ -576,9 +697,12 @@
                     role: 'aluno',
                     disciplinasInscrito: []
                 });
+                showToast("Cadastro realizado com sucesso! Faça login.", "success");
+                e.target.reset();
+                registerView.classList.add('hidden');
+                loginView.classList.remove('hidden');
             } catch (error) {
-                errorMessage.textContent = "Erro ao cadastrar. O e-mail já pode estar em uso.";
-                errorMessage.classList.remove('hidden');
+                showToast("Erro ao cadastrar. O e-mail já pode estar em uso ou a senha é muito fraca.", "error");
             }
         });
 
@@ -625,8 +749,17 @@
         const getMonitoriasForDisciplina = async (disciplinaId) => {
             const q = query(collection(db, "monitorias"), where("disciplinaId", "==", disciplinaId));
             const snapshot = await getDocs(q);
-            return snapshot.docs.map(doc => doc.data().userId);
+            const monitorIds = snapshot.docs.map(doc => doc.data().userId);
+            currentDisciplinaMonitores = monitorIds;
+            return monitorIds;
         };
+
+        const getMonitoresData = async (monitoresIds) => {
+            if (monitoresIds.length === 0) return [];
+            const q = query(collection(db, "usuarios"), where("__name__", "in", monitoresIds));
+            const monitorDocs = await getDocs(q);
+            return monitorDocs.docs.map(md => md.exists() ? md.data().nome : '').filter(Boolean);
+        }
 
         const renderMinhasDisciplinas = async () => {
             minhasDisciplinasContainer.innerHTML = '';
@@ -639,12 +772,8 @@
             for (const docSnap of querySnapshot.docs) {
                 const disciplina = { id: docSnap.id, ...docSnap.data() };
                 const monitoresIds = await getMonitoriasForDisciplina(disciplina.id);
-                let monitorDisplayNames = 'N/A';
-                if (monitoresIds.length > 0) {
-                    const monitorPromises = monitoresIds.map(id => getDoc(doc(db, "usuarios", id)));
-                    const monitorDocs = await Promise.all(monitorPromises);
-                    monitorDisplayNames = monitorDocs.map(md => md.exists() ? md.data().nome : '').filter(Boolean).join(', ');
-                }
+                const monitorDisplayNames = (await getMonitoresData(monitoresIds)).join(', ') || 'N/A';
+                
                 const card = document.createElement('div');
                 card.className = "bg-white border border-gray-200 rounded-xl p-6 flex flex-col shadow-sm h-full";
                 card.innerHTML = `
@@ -661,45 +790,84 @@
         };
 
         const renderProcurarDisciplinas = async (searchTerm = '') => {
-            showLoadingOverlay();
-            const lowerSearchTerm = searchTerm.toLowerCase();
-            const disciplinasSnapshot = await getDocs(collection(db, "disciplinas"));
-            const todasAsDisciplinas = disciplinasSnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
-            const filteredDisciplinas = [];
-            for (const d of todasAsDisciplinas) {
-                const monitoresIds = await getMonitoriasForDisciplina(d.id);
-                let monitorNames = '';
-                if (monitoresIds.length > 0) {
-                    const monitorPromises = monitoresIds.map(id => getDoc(doc(db, "usuarios", id)));
-                    const monitorDocs = await Promise.all(monitorPromises);
-                    monitorNames = monitorDocs.map(md => md.exists() ? md.data().nome : '').join(' ').toLowerCase();
-                }
-                if (d.nome.toLowerCase().includes(lowerSearchTerm) || d.codigo.toLowerCase().includes(lowerSearchTerm) || monitorNames.includes(lowerSearchTerm)) {
-                    d.monitorDisplayNames = monitorNames.split(' ').map(name => capitalize(name)).join(' ');
-                    filteredDisciplinas.push(d);
-                }
+            if (currentSearchController) {
+                currentSearchController.abort();
             }
+
+            currentSearchController = new AbortController();
+            const { signal } = currentSearchController;
+
+            showLocalLoading();
             procurarDisciplinasContainer.innerHTML = '';
-            disciplinasDisponiveisCount.textContent = filteredDisciplinas.length;
-            if (filteredDisciplinas.length === 0) {
-                procurarDisciplinasContainer.innerHTML = `<p class="text-gray-500 col-span-full">Nenhuma disciplina encontrada.</p>`;
-            } else {
-                filteredDisciplinas.forEach(d => {
-                    const isSubscribed = loggedInUser.disciplinasInscrito.includes(d.id);
-                    const card = document.createElement('div');
-                    card.className = "bg-white border border-gray-200 rounded-xl p-6 flex flex-col shadow-sm h-full";
-                    card.innerHTML = `
-                        <div class="flex-grow">
-                            <p class="text-xs font-semibold text-gray-500 uppercase">${d.codigo}</p>
-                            <h3 class="text-lg font-bold text-gray-900 mt-1">${d.nome}</h3>
-                            <p class="text-sm text-gray-600 mt-2">Monitor(es): <span class="font-medium">${d.monitorDisplayNames || 'N/A'}</span></p>
-                        </div>
-                        <button data-id="${d.id}" class="mt-6 w-full text-white font-bold py-2.5 px-4 rounded-lg ${isSubscribed ? 'bg-gray-500 hover:bg-gray-600' : 'bg-blue-800 hover:bg-blue-900'}">${isSubscribed ? 'Abrir' : 'Inscrever-se'}</button>
-                    `;
-                    procurarDisciplinasContainer.appendChild(card);
-                });
+
+            try {
+                if (signal.aborted) {
+                    hideLocalLoading();
+                    currentSearchController = null;
+                    return;
+                }
+                await new Promise(resolve => setTimeout(resolve, 300));
+
+                if (signal.aborted) {
+                    hideLocalLoading();
+                    currentSearchController = null;
+                    return;
+                }
+
+                const lowerSearchTerm = searchTerm.toLowerCase();
+                const disciplinasSnapshot = await getDocs(collection(db, "disciplinas"));
+                const todasAsDisciplinas = disciplinasSnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+                const filteredDisciplinas = [];
+
+                for (const d of todasAsDisciplinas) {
+                    if (signal.aborted) {
+                        hideLocalLoading();
+                        currentSearchController = null;
+                        return;
+                    }
+                    
+                    const monitoresIds = await getMonitoriasForDisciplina(d.id);
+                    const monitorNamesArray = await getMonitoresData(monitoresIds);
+                    let monitorNames = monitorNamesArray.join(' ').toLowerCase();
+
+                    if (d.nome.toLowerCase().includes(lowerSearchTerm) || d.codigo.toLowerCase().includes(lowerSearchTerm) || monitorNames.includes(lowerSearchTerm)) {
+                        d.monitorDisplayNames = monitorNamesArray.join(', ');
+                        filteredDisciplinas.push(d);
+                    }
+                }
+
+                procurarDisciplinasContainer.innerHTML = '';
+                disciplinasDisponiveisCount.textContent = filteredDisciplinas.length;
+                
+                if (filteredDisciplinas.length === 0) {
+                    procurarDisciplinasContainer.innerHTML = `<p class="text-gray-500 col-span-full">Nenhuma disciplina encontrada.</p>`;
+                } else {
+                    filteredDisciplinas.forEach(d => {
+                        const isSubscribed = loggedInUser.disciplinasInscrito.includes(d.id);
+                        const card = document.createElement('div');
+                        card.className = "bg-white border border-gray-200 rounded-xl p-6 flex flex-col shadow-sm h-full";
+                        card.innerHTML = `
+                                <div class="flex-grow">
+                                    <p class="text-xs font-semibold text-gray-500 uppercase">${d.codigo}</p>
+                                    <h3 class="text-lg font-bold text-gray-900 mt-1">${d.nome}</h3>
+                                    <p class="text-sm text-gray-600 mt-2">Monitor(es): <span class="font-medium">${d.monitorDisplayNames || 'N/A'}</span></p>
+                                </div>
+                                <button data-id="${d.id}" class="mt-6 w-full text-white font-bold py-2.5 px-4 rounded-lg ${isSubscribed ? 'bg-gray-500 hover:bg-gray-600' : 'bg-blue-800 hover:bg-blue-900'}">${isSubscribed ? 'Abrir' : 'Inscrever-se'}</button>
+                            `;
+                        procurarDisciplinasContainer.appendChild(card);
+                    });
+                }
+            } catch (error) {
+                if (error.name === 'AbortError') {
+                    console.log('Busca de disciplinas abortada.');
+                    return;
+                }
+                console.error("Erro na busca de disciplinas:", error);
+                procurarDisciplinasContainer.innerHTML = `<p class="text-red-500 col-span-full">Erro ao carregar disciplinas: ${error.message}</p>`;
+            } finally {
+                hideLocalLoading();
+                currentSearchController = null;
             }
-            hideLoadingOverlay();
         };
 
         searchDisciplinaInput.addEventListener('input', (e) => {
@@ -728,24 +896,12 @@
             const formData = new FormData(e.target);
             const codigo = formData.get('codigo').toUpperCase();
             const nome = formData.get('nome');
-            const matricula = formData.get('matricula');
-            if (!codigo || !nome || !matricula) {
+            if (!codigo || !nome) {
                 showToast("Preencha todos os campos.", "warning");
                 return;
             }
             try {
-                const q = query(collection(db, "usuarios"), where("matricula", "==", matricula));
-                const monitorSnapshot = await getDocs(q);
-                if (monitorSnapshot.empty) {
-                    showToast(`Aluno com matrícula "${matricula}" não encontrado.`, "warning");
-                    return;
-                }
-                const monitorId = monitorSnapshot.docs[0].id;
                 const disciplinaRef = await addDoc(collection(db, "disciplinas"), { codigo, nome });
-                await addDoc(collection(db, "monitorias"), {
-                    userId: monitorId,
-                    disciplinaId: disciplinaRef.id
-                });
                 criarMonitoriaModal.classList.add('hidden');
                 e.target.reset();
                 await renderProcurarDisciplinas();
@@ -763,17 +919,28 @@
                 if (!disciplinaDoc.exists()) { showToast("Disciplina não encontrada.", "warning"); return; }
                 const disciplina = { id: disciplinaDoc.id, ...disciplinaDoc.data() };
                 const userIsMonitor = await isUserMonitorOfDisciplina(loggedInUser.id, disciplinaId);
+                const userIsSecretaria = loggedInUser.role === 'secretaria';
                 
                 showScreen('disciplina', `${disciplina.codigo} - ${disciplina.nome}`);
-
+                
                 cancelarInscricaoBtn.dataset.id = disciplinaId;
-                cancelarInscricaoBtn.classList.toggle('hidden', loggedInUser.role === 'secretaria');
+                cancelarInscricaoBtn.classList.toggle('hidden', userIsSecretaria || userIsMonitor);
                 criarEventoBtn.classList.toggle('hidden', !userIsMonitor);
                 notificarBtn.classList.toggle('hidden', !userIsMonitor);
                 adicionarMaterialBtn.classList.toggle('hidden', !userIsMonitor);
-                changeMonitorsBtn.classList.toggle('hidden', loggedInUser.role !== 'secretaria');
+                
+                changeMonitorsBtn.classList.toggle('hidden', !userIsSecretaria || isEditingMonitors);
+                addMonitorBtn.classList.toggle('hidden', !userIsSecretaria);
+                deleteDisciplinaBtn.classList.toggle('hidden', !userIsSecretaria);
+                editDisciplinaBtn.classList.toggle('hidden', !userIsSecretaria);
+
+                deleteDisciplinaBtn.dataset.id = disciplinaId;
+                editDisciplinaBtn.dataset.id = disciplinaId;
+
+
                 criarEventoBtn.dataset.disciplinaId = disciplinaId;
                 notificarBtn.dataset.disciplinaId = disciplinaId;
+                
                 const agendaTab = document.querySelector('.disciplina-tab[data-view="agenda-avisos"]');
                 const agendaView = document.getElementById('agenda-avisos-view');
                 setActiveTab(agendaTab, agendaView, disciplinaTabs, disciplinaViews);
@@ -789,6 +956,72 @@
                 hideLoadingOverlay();
             }
         };
+        
+        deleteDisciplinaBtn.addEventListener('click', async (e) => {
+            const disciplinaId = e.target.dataset.id;
+            if (loggedInUser.role !== 'secretaria') { showToast("Acesso negado.", "error"); return; }
+            if (!confirm("ATENÇÃO: Deseja realmente apagar esta disciplina e todos os seus dados (eventos, monitores, materiais, etc)? Esta ação é IRREVERSÍVEL.")) return;
+
+            showLoadingOverlay();
+            const batch = writeBatch(db);
+
+            try {
+                const monitoriasSnap = await getDocs(query(collection(db, "monitorias"), where("disciplinaId", "==", disciplinaId)));
+                monitoriasSnap.docs.forEach(doc => batch.delete(doc.ref));
+
+                const eventosSnap = await getDocs(query(collection(db, "agendaEventos"), where("disciplinaId", "==", disciplinaId)));
+                eventosSnap.docs.forEach(doc => batch.delete(doc.ref));
+
+                const avisosSnap = await getDocs(collection(db, `disciplinas/${disciplinaId}/avisos`));
+                avisosSnap.docs.forEach(doc => batch.delete(doc.ref));
+
+                const usersSnap = await getDocs(query(collection(db, "usuarios"), where("disciplinasInscrito", "array-contains", disciplinaId)));
+                usersSnap.docs.forEach(userDoc => {
+                    batch.update(userDoc.ref, { disciplinasInscrito: arrayRemove(disciplinaId) });
+                });
+
+                batch.delete(doc(db, "disciplinas", disciplinaId));
+
+                await batch.commit();
+                showToast('Disciplina e todos os dados associados removidos com sucesso!', 'success');
+                goToDashboardHome();
+            } catch (error) {
+                console.error("Erro ao apagar disciplina:", error);
+                showToast("Ocorreu um erro ao apagar a disciplina.", "error");
+            } finally {
+                hideLoadingOverlay();
+            }
+        });
+        
+        editDisciplinaBtn.addEventListener('click', async (e) => {
+            const disciplinaId = e.target.dataset.id;
+            const disciplinaDoc = await getDoc(doc(db, "disciplinas", disciplinaId));
+            if (!disciplinaDoc.exists()) return;
+            const disciplinaData = disciplinaDoc.data();
+
+            editDisciplinaForm.querySelector('input[name="codigo"]').value = disciplinaData.codigo;
+            editDisciplinaForm.querySelector('input[name="nome"]').value = disciplinaData.nome;
+            editDisciplinaModal.classList.remove('hidden');
+        });
+        
+        editDisciplinaForm.addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const disciplinaId = currentOpenDisciplinaId;
+            const codigo = e.target.codigo.value.toUpperCase();
+            const nome = e.target.nome.value;
+            
+            try {
+                await updateDoc(doc(db, "disciplinas", disciplinaId), {
+                    codigo: codigo,
+                    nome: nome
+                });
+                showToast("Disciplina atualizada com sucesso!", "success");
+                editDisciplinaModal.classList.add('hidden');
+                await showDisciplinaScreen(disciplinaId);
+            } catch (error) {
+                showToast("Erro ao atualizar a disciplina.", "error");
+            }
+        });
 
         cancelarInscricaoBtn.addEventListener('click', async (e) => {
             const disciplinaId = e.target.dataset.id;
@@ -850,7 +1083,8 @@
                 const materiaisAtuais = disciplinaDoc.data().materiais || [];
                 const materialParaRemover = materiaisAtuais[materialIndex];
                 if (materialParaRemover && confirm(`Tem certeza que deseja excluir "${materialParaRemover.titulo}"?`)) {
-                    await updateDoc(disciplinaDocRef, { materiais: arrayRemove(materialParaRemover) });
+                    const novosMateriais = materiaisAtuais.filter((_, i) => i !== materialIndex);
+                    await updateDoc(disciplinaDocRef, { materiais: novosMateriais });
                     showToast('Material removido.');
                     await renderMateriais(currentOpenDisciplinaId);
                 }
@@ -871,23 +1105,132 @@
             const q = query(collection(db, "usuarios"), where("disciplinasInscrito", "array-contains", disciplinaId));
             const querySnapshot = await getDocs(q);
             const monitoresIds = await getMonitoriasForDisciplina(disciplinaId);
-            querySnapshot.forEach(doc => {
+            const isSecretaria = loggedInUser.role === 'secretaria';
+            
+            querySnapshot.docs.filter(doc => !(isSecretaria && doc.data().role === 'secretaria')).forEach(doc => {
                 const participante = { id: doc.id, ...doc.data() };
                 const isMonitor = monitoresIds.includes(participante.id);
+                
                 const card = document.createElement('div');
                 card.className = 'p-4 border rounded-lg bg-gray-50 flex items-center justify-between';
                 let checkboxHTML = '';
-                if (isEditingMonitors) {
-                    checkboxHTML = `<input type="checkbox" data-uid="${participante.id}" class="monitor-checkbox h-5 w-5 text-blue-600 border-gray-300 rounded focus:ring-blue-500" ${isMonitor ? 'checked' : ''}>`;
+                let actionsHTML = '';
+                
+                if (isEditingMonitors && isSecretaria) {
+                     checkboxHTML = `<input type="checkbox" data-uid="${participante.id}" class="monitor-checkbox h-5 w-5 text-blue-600 border-gray-300 rounded focus:ring-blue-500" ${isMonitor ? 'checked' : ''}>`;
                 }
-                card.innerHTML = `<div><p class="font-bold">${participante.nome} <span class="text-xs font-medium bg-gray-200 text-gray-700 px-2 py-0.5 rounded-full ml-2">${isMonitor ? 'Monitor(a)' : 'Aluno(a)'}</span></p><p class="text-sm text-gray-600 mt-1">E-mail: ${participante.email}</p></div>${checkboxHTML}`;
+                
+                if (isSecretaria && !isEditingMonitors) {
+                    actionsHTML = `<button data-id="${participante.id}" class="desinscrever-btn px-3 py-1 bg-red-500 text-white text-xs font-semibold rounded-md hover:bg-red-600">Desinscrever</button>`;
+                }
+                
+                let roleTag = '';
+                if (isMonitor) roleTag = '<span class="text-xs font-medium bg-blue-200 text-blue-800 px-2 py-0.5 rounded-full ml-2">Monitor(a)</span>';
+                else if (participante.role === 'aluno') roleTag = '<span class="text-xs font-medium bg-yellow-200 text-yellow-800 px-2 py-0.5 rounded-full ml-2">Aluno(a)</span>';
+                
+                card.innerHTML = `<div><p class="font-bold">${participante.nome} ${roleTag}</p><p class="text-sm text-gray-600 mt-1">Matrícula: ${participante.matricula}</p><p class="text-xs text-gray-500">${participante.email}</p></div><div class="flex items-center space-x-2">${checkboxHTML} ${actionsHTML}</div>`;
                 participantesContainer.appendChild(card);
             });
         };
+        
+        participantesContainer.addEventListener('click', async (e) => {
+            const desinscreverBtn = e.target.closest('.desinscrever-btn');
+            if (!desinscreverBtn || loggedInUser.role !== 'secretaria') return;
+
+            const userId = desinscreverBtn.dataset.id;
+            const disciplinaId = currentOpenDisciplinaId;
+
+            if (confirm("Tem certeza que deseja desinscrever este participante da monitoria?")) {
+                try {
+                    const batch = writeBatch(db);
+                    const userRef = doc(db, "usuarios", userId);
+                    batch.update(userRef, { disciplinasInscrito: arrayRemove(disciplinaId) });
+                    const qMonitoria = query(collection(db, "monitorias"), where("disciplinaId", "==", disciplinaId), where("userId", "==", userId));
+                    const monitoriaSnap = await getDocs(qMonitoria);
+                    monitoriaSnap.docs.forEach(doc => batch.delete(doc.ref));
+
+                    await batch.commit();
+
+                    showToast("Participante desinscrito com sucesso.", "success");
+                    await renderParticipantes(disciplinaId);
+
+                } catch (error) {
+                    console.error("Erro ao desinscrever participante:", error);
+                    showToast("Erro ao desinscrever participante.", "error");
+                }
+            }
+        });
+
+        addMonitorBtn.addEventListener('click', () => {
+             adicionarMonitorModal.classList.remove('hidden');
+             monitorSearchResult.classList.add('hidden');
+             adicionarMonitorForm.reset();
+        });
+
+        adicionarMonitorForm.addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const search = e.target.search.value.trim();
+            const disciplinaId = currentOpenDisciplinaId;
+            addMonitorSubmit.disabled = true;
+
+            try {
+                const q = query(collection(db, "usuarios"), where("disciplinasInscrito", "array-contains", disciplinaId));
+                const currentParticipants = (await getDocs(q)).docs.map(doc => doc.data());
+                
+                let userSnap;
+                if (/^2\d{7}$/.test(search)) { 
+                    userSnap = await getDocs(query(collection(db, "usuarios"), where("matricula", "==", search), where("role", "==", "aluno")));
+                } else if (search.includes('@')) { 
+                    userSnap = await getDocs(query(collection(db, "usuarios"), where("email", "==", search), where("role", "==", "aluno")));
+                } else { 
+                    userSnap = await getDocs(query(collection(db, "usuarios"), where("nome", "==", search), where("role", "==", "aluno")));
+                }
+                
+                if (userSnap.empty) {
+                    showToast("Aluno não encontrado ou não tem a função de 'aluno'.", "error");
+                    monitorSearchResult.textContent = "Aluno não encontrado.";
+                    monitorSearchResult.classList.remove('hidden');
+                    return;
+                }
+
+                const alunoDoc = userSnap.docs[0];
+                const aluno = { id: alunoDoc.id, ...alunoDoc.data() };
+                
+                if (currentDisciplinaMonitores.includes(aluno.id)) {
+                    showToast("O aluno já é monitor desta disciplina.", "warning");
+                    monitorSearchResult.textContent = `${aluno.nome} já é monitor.`;
+                    monitorSearchResult.classList.remove('hidden');
+                    return;
+                }
+
+                const batch = writeBatch(db);
+                
+                if (!aluno.disciplinasInscrito.includes(disciplinaId)) {
+                    const userRef = doc(db, "usuarios", aluno.id);
+                    batch.update(userRef, { disciplinasInscrito: arrayUnion(disciplinaId) });
+                }
+
+                const newMonitoriaRef = doc(collection(db, "monitorias"));
+                batch.set(newMonitoriaRef, { userId: aluno.id, disciplinaId: disciplinaId });
+
+                await batch.commit();
+
+                showToast(`${aluno.nome} adicionado(a) como monitor(a) com sucesso!`, "success");
+                adicionarMonitorModal.classList.add('hidden');
+                await renderParticipantes(disciplinaId);
+
+            } catch (error) {
+                console.error(error);
+                showToast("Erro ao adicionar monitor.", "error");
+            } finally {
+                addMonitorSubmit.disabled = false;
+            }
+        });
 
         changeMonitorsBtn.addEventListener('click', () => {
             isEditingMonitors = true;
             changeMonitorsBtn.classList.add('hidden');
+            addMonitorBtn.classList.add('hidden');
             confirmMonitorsActions.classList.remove('hidden');
             renderParticipantes(currentOpenDisciplinaId);
         });
@@ -895,6 +1238,7 @@
         cancelChangeMonitorsBtn.addEventListener('click', () => {
             isEditingMonitors = false;
             changeMonitorsBtn.classList.remove('hidden');
+            addMonitorBtn.classList.remove('hidden');
             confirmMonitorsActions.classList.add('hidden');
             renderParticipantes(currentOpenDisciplinaId);
         });
@@ -914,6 +1258,7 @@
                 showToast('Monitores atualizados com sucesso!');
                 isEditingMonitors = false;
                 changeMonitorsBtn.classList.remove('hidden');
+                addMonitorBtn.classList.remove('hidden');
                 confirmMonitorsActions.classList.add('hidden');
                 renderParticipantes(currentOpenDisciplinaId);
             } catch (error) {
@@ -952,13 +1297,13 @@
                     autorId: loggedInUser.id,
                     data: serverTimestamp()
                 });
-                await createNotificationForSubscribers(disciplinaId, `Novo aviso: ${mensagem.substring(0, 30)}...`);
+                await createNotificationForSubscribers(disciplinaId, `Novo aviso em ${headerTitle.textContent}: ${mensagem.substring(0, 30)}...`);
                 await renderAvisos(disciplinaId);
                 showToast('Notificação enviada para a turma!');
                 notificarModal.classList.add('hidden');
                 e.target.reset();
             } catch (error) {
-                showToast("Ocorreu um erro.", "warning");
+                showToast("Ocorreu um erro.", "error");
             }
         });
 
@@ -966,11 +1311,11 @@
         let currentAgendaView = 'month';
             
         const renderAgendaCompleta = async () => {
-            if (!loggedInUser || !loggedInUser.disciplinasInscrito || loggedInUser.disciplinasInscrito.length === 0) {
+            if (!loggedInUser.disciplinasInscrito || loggedInUser.disciplinasInscrito.length === 0) {
                 calendarContainer.innerHTML = `<p class="text-center text-gray-500 p-8">Inscreva-se em disciplinas para ver sua agenda.</p>`;
                 return;
             }
-            const q = query(collection(db, "agendaEventos"), where("disciplinaId", "in", loggedInUser.disciplinasInscrito));
+            const q = query(collection(db, "agendaEventos"), where("disciplinaId", "in", loggedInUser.disciplinasInscrito), where("status", "==", "confirmado"));
             const querySnapshot = await getDocs(q);
             const userEvents = querySnapshot.docs.map(doc => ({id: doc.id, ...doc.data()}));
             const disciplinasMap = new Map();
@@ -1002,33 +1347,149 @@
                 let cellClass = 'p-2 bg-white text-right text-sm h-24 relative';
                 let eventsIndicator = '';
                 if (dayEvents.length > 0) {
-                    eventsIndicator = '<div class="absolute bottom-2 left-2 w-3 h-3 bg-red-500 rounded-full"></div>';
+                    eventsIndicator = `<div class="absolute bottom-2 left-2 w-3 h-3 bg-red-500 rounded-full cursor-pointer event-day-indicator" data-date="${dateStr}" data-events='${JSON.stringify(dayEvents.map(e => ({...e, disciplinaNome: undefined})))}'></div>`;
                 }
-                contentHTML += `<div class="${cellClass}">${day}${eventsIndicator}</div>`;
+                contentHTML += `<div class="${cellClass}"><span class="float-right">${day}</span>${eventsIndicator}</div>`;
             }
             contentHTML += `</div>`;
             calendarContainer.innerHTML = contentHTML;
+            document.querySelectorAll('.event-day-indicator').forEach(indicator => {
+                indicator.addEventListener('click', (e) => {
+                    e.stopPropagation();
+                    const events = JSON.parse(e.currentTarget.dataset.events);
+                    showToast(`${events.length} evento(s) neste dia.`, 'info');
+                });
+            });
         };
         
         const renderDisciplinaAgenda = async (disciplinaId) => {
             disciplinaAgendaContainer.innerHTML = '';
             const hoje = new Date().toISOString().split('T')[0];
-            const q = query(collection(db, "agendaEventos"), where("disciplinaId", "==", disciplinaId), where("date", ">=", hoje));
+            
+            let q;
+            if (loggedInUser.role === 'secretaria') {
+                q = query(
+                    collection(db, "agendaEventos"), 
+                    where("disciplinaId", "==", disciplinaId), 
+                    where("date", ">=", hoje)
+                );
+            } else {
+                q = query(
+                    collection(db, "agendaEventos"), 
+                    where("disciplinaId", "==", disciplinaId), 
+                    where("date", ">=", hoje),
+                    where("status", "==", "confirmado")
+                );
+            }
+            
             const querySnapshot = await getDocs(q);
+            const disciplinaDoc = await getDoc(doc(db, "disciplinas", disciplinaId));
+            const disciplinaNome = disciplinaDoc.exists() ? disciplinaDoc.data().nome : "";
+
             if (querySnapshot.empty) {
                 disciplinaAgendaContainer.innerHTML = `<p class="text-gray-500 col-span-full">Nenhum evento futuro agendado.</p>`;
                 return;
             }
-            querySnapshot.forEach(doc => {
-                const event = doc.data();
+            querySnapshot.forEach(docSnap => {
+                const event = { id: docSnap.id, ...docSnap.data() };
+                
                 const eventDate = new Date(event.date + 'T12:00:00');
                 const card = document.createElement('div');
-                card.className = "bg-white p-3 rounded-lg border border-gray-200 text-center";
-                card.innerHTML = `<p class="font-bold text-blue-800">${eventDate.toLocaleDateString('pt-BR', { weekday: 'short' }).split(',')[0]}.</p><p class="text-2xl font-bold text-gray-800">${eventDate.getDate()}</p><p class="text-xs text-gray-500">${eventDate.toLocaleDateString('pt-BR', { month: 'short' })}</p><p class="text-xs text-gray-600 mt-2">${event.time}</p><p class="text-xs text-gray-500">${event.sala}</p>`;
+                const statusClass = event.status === 'pendente' ? 'bg-yellow-100 text-yellow-800' : 'bg-blue-100 text-blue-800';
+                card.className = `bg-white p-3 rounded-lg border border-gray-200 text-center cursor-pointer agenda-event-card ${statusClass}`;
+                card.dataset.eventId = event.id;
+                card.dataset.disciplinaNome = disciplinaNome;
+                
+                let monitoraTag = '';
+                if (event.status === 'pendente') monitoraTag = `<p class="text-xs font-bold text-yellow-800">PENDENTE</p>`;
+                
+                card.innerHTML = `${monitoraTag}<p class="font-bold text-blue-800">${eventDate.toLocaleDateString('pt-BR', { weekday: 'short' }).split(',')[0]}.</p><p class="text-2xl font-bold text-gray-800">${eventDate.getDate()}</p><p class="text-xs text-gray-500">${eventDate.toLocaleDateString('pt-BR', { month: 'short' })}</p><p class="text-xs text-gray-600 mt-2">${event.time}</p><p class="text-xs text-gray-500">${event.sala || 'Online'}</p>`;
                 disciplinaAgendaContainer.appendChild(card);
             });
         };
         
+        disciplinaAgendaContainer.addEventListener('click', async (e) => {
+            const card = e.target.closest('.agenda-event-card');
+            if (!card) return;
+
+            const eventId = card.dataset.eventId;
+            const disciplinaNome = card.dataset.disciplinaNome;
+            const eventDoc = await getDoc(doc(db, "agendaEventos", eventId));
+            if (!eventDoc.exists()) return;
+            const event = { id: eventDoc.id, ...eventDoc.data() };
+
+            const eventDate = new Date(event.date + 'T12:00:00');
+            const dataHoraText = `${eventDate.toLocaleDateString('pt-BR', { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric'})} das ${event.time.split(' - ')[0]} às ${event.time.split(' - ')[1]}`;
+            const localText = event.sala === 'Online' ? 'Online (link a ser fornecido)' : event.sala;
+            let statusText = event.status === 'pendente' ? 'Pendente (aguardando aprovação da secretaria)' : 'Confirmado';
+            
+            document.getElementById('evento-disciplina').textContent = disciplinaNome;
+            document.getElementById('evento-data-hora').innerHTML = `<svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-2 text-blue-600" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" /></svg>${dataHoraText}`;
+            document.getElementById('evento-local').innerHTML = `<svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-2 text-blue-600" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.828 0l-4.243-4.243a8 8 0 1111.314 0z" /><path stroke-linecap="round" stroke-linejoin="round" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" /></svg>${localText}`;
+            document.getElementById('evento-status').innerHTML = `<svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-2 ${event.status === 'confirmado' ? 'text-green-600' : 'text-yellow-600'}" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>${statusText}`;
+            
+            const userIsInterested = (event.interessados || []).includes(loggedInUser.id);
+            const countInteressados = (event.interessados || []).length;
+            
+            interesseBtn.dataset.eventoId = eventId;
+            interesseBtn.classList.remove('bg-blue-800', 'bg-red-600', 'bg-gray-400');
+            
+            if (loggedInUser.role === 'secretaria') {
+                interesseBtn.textContent = 'Ações da Secretaria';
+                interesseBtn.classList.add('bg-gray-400', 'cursor-not-allowed');
+                interesseBtn.disabled = true;
+            } else if (event.status === 'pendente') {
+                interesseBtn.textContent = 'Pendente de Confirmação';
+                interesseBtn.classList.add('bg-gray-400', 'cursor-not-allowed');
+                interesseBtn.disabled = true;
+            } else {
+                interesseBtn.textContent = userIsInterested ? 'Remover Interesse' : 'Demonstrar Interesse';
+                interesseBtn.classList.add(userIsInterested ? 'bg-red-600 hover:bg-red-700' : 'bg-blue-800 hover:bg-blue-900');
+                interesseBtn.disabled = false;
+            }
+
+            interessadosCount.textContent = `${countInteressados} pessoa(s) demonstraram interesse.`;
+            eventoDetalheModal.classList.remove('hidden');
+        });
+
+        interesseBtn.addEventListener('click', async (e) => {
+            const eventId = e.target.dataset.eventId;
+            if (e.target.disabled) return; 
+
+            const eventRef = doc(db, "agendaEventos", eventId);
+            const eventDoc = await getDoc(eventRef);
+            if (!eventDoc.exists()) return;
+            const event = { id: eventDoc.id, ...eventDoc.data() };
+            
+            const isInterested = (event.interessados || []).includes(loggedInUser.id);
+
+            try {
+                if (isInterested) {
+                    await updateDoc(eventRef, { interessados: arrayRemove(loggedInUser.id) });
+                    showToast('Interesse removido.', 'warning');
+                } else {
+                    await updateDoc(eventRef, { interessados: arrayUnion(loggedInUser.id) });
+                    showToast('Interesse demonstrado!', 'success');
+                }
+                
+                const updatedEventDoc = await getDoc(eventRef);
+                const updatedEvent = { id: updatedEventDoc.id, ...updatedEventDoc.data() };
+                const userIsInterested = (updatedEvent.interessados || []).includes(loggedInUser.id);
+                const countInteressados = (updatedEvent.interessados || []).length;
+
+                interesseBtn.textContent = userIsInterested ? 'Remover Interesse' : 'Demonstrar Interesse';
+                interesseBtn.classList.remove('bg-blue-800', 'bg-red-600', 'bg-gray-400');
+                interesseBtn.classList.add(userIsInterested ? 'bg-red-600 hover:bg-red-700' : 'bg-blue-800 hover:bg-blue-900');
+                interessadosCount.textContent = `${countInteressados} pessoa(s) demonstraram interesse.`;
+
+            } catch (error) {
+                showToast('Erro ao atualizar interesse.', 'error');
+            }
+        });
+
+        closeEventoDetalheModal.addEventListener('click', () => eventoDetalheModal.classList.add('hidden'));
+        eventoDetalheModal.addEventListener('click', (e) => { if(e.target === eventoDetalheModal) eventoDetalheModal.classList.add('hidden'); });
+
         const renderWeekView = (userEvents) => {
             const startOfWeek = new Date(agendaCompletaDate);
             startOfWeek.setDate(startOfWeek.getDate() - startOfWeek.getDay());
@@ -1043,7 +1504,7 @@
                 dayDate.setDate(startOfWeek.getDate() + i);
                 const dateStr = formatDate(dayDate);
                 const dayEvents = userEvents.filter(event => event.date === dateStr);
-                let eventsHTML = dayEvents.map(event => `<div class="p-1 text-xs rounded bg-blue-100 mb-1 truncate" title="${event.disciplinaNome} - ${event.time}">${event.disciplinaNome}</div>`).join('');
+                let eventsHTML = dayEvents.map(event => `<div class="p-1 text-xs rounded ${event.status === 'pendente' ? 'bg-yellow-100' : 'bg-blue-100'} mb-1 truncate cursor-pointer" title="${event.disciplinaNome} - ${event.time}" data-event-id="${event.id}">${event.disciplinaNome}</div>`).join('');
                 contentHTML += `<div class="p-2 bg-white h-32 overflow-y-auto"><p class="font-semibold text-gray-700 text-center">${dayDate.getDate()}</p><div class="mt-1">${eventsHTML}</div></div>`;
             }
             contentHTML += `</div>`;
@@ -1060,8 +1521,8 @@
             }
             let contentHTML = '<div class="space-y-4">';
             dayEvents.forEach(event => {
-                const borderColor = 'border-blue-800';
-                contentHTML += `<div class="p-4 bg-white rounded-lg border-l-4 ${borderColor} shadow-sm"><p class="font-bold text-gray-800">${event.disciplinaNome}</p><p class="text-sm text-gray-600">Horário: ${event.time}</p><p class="text-sm text-gray-600">Sala: ${event.sala}</p></div>`;
+                const borderColor = event.status === 'pendente' ? 'border-yellow-500' : 'border-blue-800';
+                contentHTML += `<div data-event-id="${event.id}" class="p-4 bg-white rounded-lg border-l-4 ${borderColor} shadow-sm cursor-pointer"><p class="font-bold text-gray-800">${event.disciplinaNome}</p><p class="text-sm text-gray-600">Horário: ${event.time}</p><p class="text-sm text-gray-600">Sala: ${event.sala || 'Online'}</p></div>`;
             });
             contentHTML += '</div>';
             calendarContainer.innerHTML = contentHTML;
@@ -1100,7 +1561,7 @@
                 proximosEventosContainer.innerHTML = `<p class="text-center text-gray-500">Inscreva-se em uma disciplina para ver os eventos.</p>`;
                 return;
             }
-            const q = query(collection(db, "agendaEventos"), where("disciplinaId", "in", loggedInUser.disciplinasInscrito), where("date", ">=", hoje));
+            const q = query(collection(db, "agendaEventos"), where("disciplinaId", "in", loggedInUser.disciplinasInscrito), where("date", ">=", hoje), where("status", "==", "confirmado"));
             const querySnapshot = await getDocs(q);
             if (querySnapshot.empty) {
                 proximosEventosContainer.innerHTML = `<p class="text-center text-gray-500">Nenhum evento programado.</p>`;
@@ -1113,7 +1574,7 @@
                 const disciplinaNome = disciplinaDoc.exists() ? disciplinaDoc.data().nome : "Desconhecida";
                 const isMonitor = await isUserMonitorOfDisciplina(loggedInUser.id, event.disciplinaId);
                 const borderColor = isMonitor ? 'border-blue-800' : 'border-yellow-500';
-                eventsHtml += `<div class="bg-gray-50 p-4 rounded-lg border border-gray-200"><h3 class="font-bold text-gray-800">${new Date(event.date + 'T12:00:00').toLocaleDateString('pt-BR', {weekday: 'long', day: '2-digit', month: 'short'})}</h3><div class="mt-2 p-3 bg-white rounded-md border-l-4 ${borderColor}"><p class="font-bold text-gray-800">${disciplinaNome}</p><p class="text-sm text-gray-500">Sala: ${event.sala}</p><p class="text-sm text-gray-500">Horário: ${event.time}</p></div></div>`;
+                eventsHtml += `<div class="bg-gray-50 p-4 rounded-lg border border-gray-200"><h3 class="font-bold text-gray-800">${new Date(event.date + 'T12:00:00').toLocaleDateString('pt-BR', {weekday: 'long', day: '2-digit', month: 'short'})}</h3><div class="mt-2 p-3 bg-white rounded-md border-l-4 ${borderColor}"><p class="font-bold text-gray-800">${disciplinaNome}</p><p class="text-sm text-gray-500">Sala: ${event.sala || 'Online'}</p><p class="text-sm text-gray-500">Horário: ${event.time}</p></div></div>`;
             }
             eventsHtml += '</div>';
             proximosEventosContainer.innerHTML = eventsHtml;
@@ -1123,8 +1584,8 @@
             e.preventDefault();
             const formData = new FormData(e.target);
             const disciplinaId = criarEventoBtn.dataset.disciplinaId;
-            const isPresencial = formData.get('presencial');
-            const sala = formData.get('sala');
+            const isPresencial = e.target.querySelector('#sera-presencial').checked;
+            const sala = formData.get('sala') || 'Online';
             const data = formData.get('data');
             const inicio = formData.get('inicio');
             const fim = formData.get('fim');
@@ -1135,22 +1596,40 @@
             try {
                 const disciplinaDoc = await getDoc(doc(db, "disciplinas", disciplinaId));
                 const disciplinaNome = disciplinaDoc.data().nome;
+                
                 if (isPresencial) {
-                    await addDoc(collection(db, "solicitacoes"), { disciplinaId, disciplinaNome, monitorId: loggedInUser.id, monitorNome: loggedInUser.nome, sala, data: new Date(data + 'T12:00:00').toLocaleDateString('pt-BR'), horario: `${inicio} - ${fim}`, status: 'pendente' });
-                    await createNotificationForSecretaria(`Nova solicitação de sala para ${disciplinaNome}.`);
-                    showToast('Solicitação de monitoria presencial enviada!');
+                     const status = 'pendente'; 
+                     await addDoc(collection(db, "agendaEventos"), { 
+                        disciplinaId, 
+                        sala, 
+                        date: data, 
+                        time: `${inicio} - ${fim}`, 
+                        status, 
+                        interessados: []
+                     });
+                     await createNotificationForSecretaria(`Nova solicitação de sala para monitoria de ${disciplinaNome}.`);
+                     showToast('Solicitação de monitoria presencial enviada para a secretaria!', 'info');
                 } else {
-                    await addDoc(collection(db, "agendaEventos"), { disciplinaId, sala: 'Online', date: data, time: `${inicio} - ${fim}` });
+                    const status = 'confirmado'; 
+                    await addDoc(collection(db, "agendaEventos"), { 
+                        disciplinaId, 
+                        sala: 'Online', 
+                        date: data, 
+                        time: `${inicio} - ${fim}`,
+                        status,
+                        interessados: []
+                    });
                     await createNotificationForSubscribers(disciplinaId, `Monitoria online agendada para ${disciplinaNome} em ${new Date(data + 'T12:00:00').toLocaleDateString('pt-BR')}.`);
-                    showToast('Evento online criado com sucesso!');
+                    showToast('Evento online criado com sucesso!', 'success');
                 }
+                
                 await renderDisciplinaAgenda(disciplinaId);
                 agendarMonitoriaModal.classList.add('hidden');
                 e.target.reset();
                 salaSelect.disabled = true;
                 salaInputContainer.style.opacity = '0.5';
             } catch (error) {
-                showToast("Ocorreu um erro.", "warning");
+                showToast("Ocorreu um erro ao agendar.", "error");
             }
         });
         
@@ -1161,10 +1640,23 @@
 
         const listenToSolicitacoes = () => {
             if (unsubscribeSolicitacoes) unsubscribeSolicitacoes();
-            const q = query(collection(db, "solicitacoes"));
-            unsubscribeSolicitacoes = onSnapshot(q, (querySnapshot) => {
+            const q = query(collection(db, "agendaEventos"), where("status", "==", "pendente"));
+            unsubscribeSolicitacoes = onSnapshot(q, async (querySnapshot) => {
                 const solicitacoes = [];
-                querySnapshot.forEach((doc) => solicitacoes.push({ id: doc.id, ...doc.data() }));
+                for (const docSnap of querySnapshot.docs) {
+                    const req = { id: docSnap.id, ...docSnap.data() };
+                    const disciplinaDoc = await getDoc(doc(db, "disciplinas", req.disciplinaId));
+                    const monitoriasSnap = await getDocs(query(collection(db, "monitorias"), where("disciplinaId", "==", req.disciplinaId)));
+                    const monitorIds = monitoriasSnap.docs.map(d => d.data().userId);
+                    const monitorNames = await getMonitoresData(monitorIds);
+
+                    solicitacoes.push({
+                        ...req,
+                        disciplinaNome: disciplinaDoc.exists() ? disciplinaDoc.data().nome : "Desconhecida",
+                        monitorNome: monitorNames.join(', ') || 'N/A', 
+                        dataDisplay: new Date(req.date + 'T12:00:00').toLocaleDateString('pt-BR')
+                    });
+                }
                 renderSolicitacoes(solicitacoes);
             });
         };
@@ -1172,20 +1664,15 @@
         const renderSolicitacoes = (solicitacoes) => {
             solicitacoesTableBody.innerHTML = '';
             if (solicitacoes.length === 0) {
-                solicitacoesTableBody.innerHTML = `<tr><td colspan="6" class="text-center p-4 text-gray-500">Nenhuma solicitação encontrada.</td></tr>`;
+                solicitacoesTableBody.innerHTML = `<tr><td colspan="6" class="text-center p-4 text-gray-500">Nenhuma solicitação pendente.</td></tr>`;
                 return;
             }
             solicitacoes.forEach(req => {
                 const row = document.createElement('tr');
-                let statusClass = 'bg-white';
-                if (req.status === 'aprovado') statusClass = 'bg-green-50';
-                if (req.status === 'rejeitado') statusClass = 'bg-red-50';
-                let actionsHtml = '';
-                if (req.status === 'pendente') {
-                    actionsHtml = `<button data-action="aprovar" data-id="${req.id}" class="flex items-center px-3 py-1 text-xs font-medium text-white bg-green-600 rounded-md hover:bg-green-700">Aprovar</button><button data-action="rejeitar" data-id="${req.id}" class="flex items-center px-3 py-1 text-xs font-medium text-white bg-red-600 rounded-md hover:bg-red-700">Rejeitar</button>`;
-                }
-                row.className = `${statusClass} border-b`;
-                row.innerHTML = `<td class="px-6 py-4 font-medium text-gray-900">${req.disciplinaNome}</td><td class="px-6 py-4">${req.monitorNome}</td><td class="px-6 py-4">${req.sala}</td><td class="px-6 py-4">${req.data}</td><td class="px-6 py-4">${req.horario}</td><td class="px-6 py-4 flex items-center justify-center space-x-2">${actionsHtml}</td>`;
+                row.className = `bg-yellow-50 border-b`;
+                const actionsHtml = `<button data-action="aprovar" data-id="${req.id}" data-disciplina-id="${req.disciplinaId}" data-data="${req.date}" data-horario="${req.time}" data-sala="${req.sala}" class="flex items-center px-3 py-1 text-xs font-medium text-white bg-green-600 rounded-md hover:bg-green-700">Aprovar</button><button data-action="rejeitar" data-id="${req.id}" data-disciplina-id="${req.disciplinaId}" class="flex items-center px-3 py-1 text-xs font-medium text-white bg-red-600 rounded-md hover:bg-red-700">Rejeitar</button>`;
+                
+                row.innerHTML = `<td class="px-6 py-4 font-medium text-gray-900">${req.disciplinaNome}</td><td class="px-6 py-4">${req.monitorNome}</td><td class="px-6 py-4">${req.sala}</td><td class="px-6 py-4">${req.dataDisplay}</td><td class="px-6 py-4">${req.time}</td><td class="px-6 py-4 flex items-center justify-center space-x-2">${actionsHtml}</td>`;
                 solicitacoesTableBody.appendChild(row);
             });
         };
@@ -1207,55 +1694,55 @@
             if (!button) return; 
             const action = button.dataset.action; 
             const id = button.dataset.id; 
-            const reqRef = doc(db, "solicitacoes", id);
+            const disciplinaId = button.dataset.disciplinaId;
+
+            const reqRef = doc(db, "agendaEventos", id);
+
             try {
                 if (action === 'aprovar') { 
-                    const reqDoc = await getDoc(reqRef);
-                    const reqData = reqDoc.data();
-                    const [start, end] = reqData.horario.split(' - ');
-                    const dateParts = reqData.data.split('/');
-                    const isoDate = `${dateParts[2]}-${dateParts[1]}-${dateParts[0]}`;
-                    
+                    const data = button.dataset.data;
+                    const horario = button.dataset.horario;
+                    const sala = button.dataset.sala;
+                    const disciplinaDoc = await getDoc(doc(db, "disciplinas", disciplinaId));
+                    const disciplinaNome = disciplinaDoc.exists() ? disciplinaDoc.data().nome : "Desconhecida";
+
+                    const [start, end] = horario.split(' - ');
                     const slotsToBlock = getTimeSlotsInRange(start, end);
+                    
                     if (slotsToBlock.length === 0) {
                         showToast("Horário inválido ou não corresponde a blocos fixos.", "warning");
                         return;
                     }
 
                     const batch = writeBatch(db);
-
-                    const agendaRef = doc(collection(db, "agendaEventos"));
-                    batch.set(agendaRef, {
-                        disciplinaId: reqData.disciplinaId,
-                        sala: reqData.sala,
-                        date: isoDate,
-                        time: reqData.horario
-                    });
+                    
+                    batch.update(reqRef, { status: 'confirmado' }); 
                     
                     slotsToBlock.forEach(slot => {
                         const blockRef = doc(collection(db, "bloqueios"));
                         batch.set(blockRef, {
-                            sala: reqData.sala,
-                            date: isoDate,
+                            sala: sala,
+                            date: data,
                             time: slot,
-                            motivo: `Monitoria: ${reqData.disciplinaNome}`
+                            motivo: `Monitoria: ${disciplinaNome}`
                         });
                     });
-                    
-                    batch.update(reqRef, { status: 'aprovado' });
-                    
+
                     await batch.commit();
 
-                    await createNotificationForSubscribers(reqData.disciplinaId, `Monitoria presencial agendada para ${reqData.disciplinaNome} em ${reqData.data}.`);
-                    showToast('Monitoria agendada', 'success'); 
+                    await createNotificationForSubscribers(disciplinaId, `Monitoria presencial de ${disciplinaNome} em ${new Date(data + 'T12:00:00').toLocaleDateString('pt-BR')} foi confirmada!`);
+                    showToast('Monitoria agendada e sala bloqueada!', 'success'); 
                 } 
                 if (action === 'rejeitar') { 
-                    await updateDoc(reqRef, { status: 'rejeitado' }); 
-                    showToast('Monitoria rejeitada', 'warning'); 
+                    await deleteDoc(reqRef);
+                    showToast('Solicitação rejeitada e removida.', 'warning'); 
+                    const disciplinaDoc = await getDoc(doc(db, "disciplinas", disciplinaId));
+                    const disciplinaNome = disciplinaDoc.exists() ? disciplinaDoc.data().nome : "Desconhecida";
+                    await createNotificationForSubscribers(disciplinaId, `Monitoria presencial de ${disciplinaNome} foi rejeitada pela secretaria.`, 'disciplina-rejeitada');
                 }
             } catch(error) {
                 console.error(error);
-                showToast("Ocorreu um erro.", "warning");
+                showToast("Ocorreu um erro ao processar a solicitação.", "error");
             }
         });
 
@@ -1269,7 +1756,10 @@
             const monthNames = ["Jan", "Fev", "Mar", "Abr", "Mai", "Jun", "Jul", "Ago", "Set", "Out", "Nov", "Dez"];
             weekDisplay.textContent = `${monthNames[startOfWeek.getMonth()]} ${startOfWeek.getDate()} - ${new Date(startOfWeek.getFullYear(), startOfWeek.getMonth(), startOfWeek.getDate() + 4).getDate()}`;
             const selectedSala = scheduleSalaSelect.value;
-            if (!selectedSala) return;
+            if (!selectedSala) { 
+                scheduleGrid.innerHTML = '<p class="text-center text-gray-500 p-8">Selecione uma sala.</p>';
+                return;
+            }
             const q = query(collection(db, "bloqueios"), where("sala", "==", selectedSala), where("date", ">=", formatDate(startOfWeek)), where("date", "<", formatDate(endOfWeek)));
             unsubscribeBloqueios = onSnapshot(q, (querySnapshot) => {
                 const blockedSlots = [];
@@ -1285,8 +1775,9 @@
                         const blockedSlot = blockedSlots.find(slot => slot.date === dateStr && slot.time === time); 
                         const bgColor = blockedSlot ? 'bg-red-500 cursor-pointer' : 'bg-blue-50'; 
                         const dataInfo = blockedSlot ? `data-id="${blockedSlot.id}"` : ''; 
-                        const textInfo = blockedSlot ? `<div class="text-white text-xs truncate-text" title="${blockedSlot.motivo || 'Sem motivo'}">${blockedSlot.motivo || 'Bloqueado'}</div>` : ''; 
-                        gridHTML += `<td class="border p-2 ${bgColor} h-10" ${dataInfo}>${textInfo}</td>`; 
+                        const titleText = blockedSlot ? `title="${blockedSlot.motivo || 'Bloqueado'}"` : '';
+                        const textInfo = blockedSlot ? `<div class="text-white text-xs truncate-text">${blockedSlot.motivo || 'Bloqueado'}</div>` : ''; 
+                        gridHTML += `<td class="border p-2 ${bgColor} h-10" ${dataInfo} ${titleText}>${textInfo}</td>`; 
                     } 
                     gridHTML += `</tr>`; 
                 }); 
@@ -1392,8 +1883,9 @@
                     return;
                 }
                 let hasUnread = false;
-                snapshot.docs.forEach(doc => {
-                    const notif = doc.data();
+                const sortedNotificacoes = snapshot.docs.map(doc => ({id: doc.id, ...doc.data()})).sort((a, b) => b.timestamp - a.timestamp);
+                
+                sortedNotificacoes.forEach(notif => {
                     if (!notif.lida) hasUnread = true;
                     const item = document.createElement('div');
                     item.className = `p-3 border-b border-gray-100 ${!notif.lida ? 'bg-blue-50' : ''}`;
@@ -1432,8 +1924,15 @@
             viewToShow.classList.remove('hidden');
             activeTab.classList.add('border-blue-800', 'text-blue-800');
             activeTab.classList.remove('border-transparent', 'text-gray-500');
-            if (Array.from(allTabs).every(t => t.classList.contains('disciplina-tab'))) {
+            if (Array.from(allTabs).some(t => t.classList.contains('disciplina-tab'))) {
                 activeTab.classList.add('bg-gray-100');
+                allTabs.forEach(t => {
+                    if (t !== activeTab) {
+                        t.classList.remove('bg-gray-100');
+                        t.classList.add('text-gray-600');
+                    }
+                });
+                activeTab.classList.remove('text-gray-600');
             }
         };
 
@@ -1442,12 +1941,14 @@
                 e.preventDefault();
                 const viewId = e.target.id.replace('-tab', '-view');
                 const viewToShow = document.getElementById(viewId);
-                let title = 'Início';
-                if(e.target.id === 'minha-agenda-tab') title = 'Minha Agenda';
-                if(e.target.id === 'procurar-disciplinas-tab') title = 'Procurar Disciplinas';
+                const title = getScreenTitle(e.target.id);
                 document.title = `MonIC - ${title}`;
                 headerTitle.textContent = title;
-
+                if (currentSearchController) {
+                    currentSearchController.abort();
+                    currentSearchController = null;
+                    hideLocalLoading();
+                }
                 setActiveTab(e.target, viewToShow, dashboardTabs, dashboardViews);
                 if (viewId === 'minha-agenda-view') renderProximosEventos();
                 else if (viewId === 'procurar-disciplinas-view') renderProcurarDisciplinas();
@@ -1463,6 +1964,13 @@
                 setActiveTab(clickedTab, viewToShow, disciplinaTabs, disciplinaViews);
             });
         });
+        document.addEventListener('DOMContentLoaded', () => {
+             const defaultTab = document.querySelector('.disciplina-tab[data-view="agenda-avisos"]');
+             if (defaultTab) {
+                 defaultTab.classList.add('bg-gray-100', 'text-blue-800');
+                 defaultTab.classList.remove('text-gray-600');
+             }
+        });
 
         registerLink.addEventListener('click', (e) => { e.preventDefault(); loginView.classList.add('hidden'); registerView.classList.remove('hidden'); });
         forgotPasswordLink.addEventListener('click', (e) => { e.preventDefault(); loginView.classList.add('hidden'); resetPasswordView.classList.remove('hidden'); });
@@ -1475,6 +1983,12 @@
         criarMonitoriaBtn.addEventListener('click', () => criarMonitoriaModal.classList.remove('hidden'));
         closeCriarMonitoriaModal.addEventListener('click', () => criarMonitoriaModal.classList.add('hidden'));
         criarMonitoriaModal.addEventListener('click', (e) => { if (e.target === criarMonitoriaModal) criarMonitoriaModal.classList.add('hidden'); });
+        
+        closeEditDisciplinaModal.addEventListener('click', () => editDisciplinaModal.classList.add('hidden'));
+        editDisciplinaModal.addEventListener('click', (e) => { if (e.target === editDisciplinaModal) editDisciplinaModal.classList.add('hidden'); });
+        
+        closeAdicionarMonitorModal.addEventListener('click', () => adicionarMonitorModal.classList.add('hidden'));
+        adicionarMonitorModal.addEventListener('click', (e) => { if (e.target === adicionarMonitorModal) adicionarMonitorModal.classList.add('hidden'); });
 
         adicionarMaterialBtn.addEventListener('click', () => adicionarMaterialModal.classList.remove('hidden'));
         closeAdicionarMaterialModal.addEventListener('click', () => adicionarMaterialModal.classList.add('hidden'));
@@ -1496,11 +2010,12 @@
             salaSelect.disabled = !isChecked;
             salaInputContainer.style.opacity = isChecked ? '1' : '0.5';
             if (!isChecked) salaSelect.value = '';
+            salaSelect.required = isChecked;
         });
 
         notificationsButton.addEventListener('click', () => { 
             notificationsPopup.classList.toggle('hidden'); 
-            if (!notificationsPopup.classList.contains('hidden')) {
+            if (!notificationsPopup.classList.contains('hidden') && loggedInUser) {
                 const q = query(collection(db, "notificacoes"), where("userId", "==", loggedInUser.id), where("lida", "==", false));
                 getDocs(q).then(snapshot => {
                     const batch = writeBatch(db);
