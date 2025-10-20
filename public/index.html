@@ -35,6 +35,27 @@
             height: 30px;
             animation: spin 1s linear infinite;
         }
+        .custom-tooltip { position: relative; cursor: pointer; }
+        .custom-tooltip .tooltip-text {
+          visibility: hidden;
+          width: 180px;
+          background-color: #1f2937;
+          color: #fff;
+          text-align: center;
+          border-radius: 6px;
+          padding: 5px;
+          position: absolute;
+          z-index: 10;
+          bottom: 110%;
+          left: 50%;
+          margin-left: -90px;
+          opacity: 0;
+          transition: opacity 0.3s;
+          white-space: nowrap;
+          overflow: hidden;
+          text-overflow: ellipsis;
+        }
+        .custom-tooltip:hover .tooltip-text { visibility: visible; opacity: 1; }
     </style>
 </head>
 <body class="bg-gray-50">
@@ -187,10 +208,10 @@
                             <button id="criar-monitoria-btn" class="hidden ml-4 px-4 py-2 bg-blue-800 text-white font-semibold rounded-lg whitespace-nowrap">Criar Monitoria</button>
                         </div>
                         <h2 class="text-lg font-bold text-gray-800 mt-6 mb-2">Disciplinas Disponíveis (<span id="disciplinas-disponiveis-count"></span>)</h2>
+                        <div id="procurar-disciplinas-loading" class="flex items-center justify-center z-50 hidden rounded-xl py-10">
+                            <div class="local-loading-spinner"></div>
+                        </div>
                         <div id="procurar-disciplinas-container" class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6"></div>
-                    </div>
-                     <div id="procurar-disciplinas-loading" class="absolute inset-0 flex items-center justify-center z-50 hidden rounded-xl">
-                        <div class="local-loading-spinner"></div>
                     </div>
                 </div>
             </main>
@@ -404,6 +425,14 @@
             <p id="interessados-count" class="text-sm text-center text-gray-500 mt-3"></p>
         </div>
     </div>
+    <div id="monitor-interessados-modal" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 hidden z-50">
+        <div class="bg-white rounded-2xl shadow-xl max-w-md w-full p-6 relative">
+            <button id="close-monitor-interessados-modal" class="absolute top-4 right-4 text-gray-400 hover:text-gray-800"><svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12" /></svg></button>
+            <h2 id="monitor-interessados-title" class="text-xl font-bold text-gray-900 mb-4">Lista de Participantes</h2>
+            <p class="text-sm text-gray-500 mb-4">Um ícone de ( <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 inline text-green-600" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7" /></svg> ) indica interesse no evento.</p>
+            <div id="monitor-interessados-list" class="max-h-80 overflow-y-auto space-y-3"> </div>
+        </div>
+    </div>
 
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
@@ -434,7 +463,8 @@
             arrayRemove,
             writeBatch,
             serverTimestamp,
-            setDoc
+            setDoc,
+            orderBy
         } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
 
         const firebaseConfig = {
@@ -486,6 +516,7 @@
             eyeOpen = document.getElementById('eye-open'), eyeClosed = document.getElementById('eye-closed'),
             dashboardTabs = document.querySelectorAll('.dashboard-tab'), dashboardViews = document.querySelectorAll('.dashboard-view'),
             minhasDisciplinasContainer = document.getElementById('minhas-disciplinas-container'), procurarDisciplinasContainer = document.getElementById('procurar-disciplinas-container'),
+            minhasDisciplinasTab = document.getElementById('minhas-disciplinas-tab'), minhaAgendaTab = document.getElementById('minha-agenda-tab'),
             procurarDisciplinasTab = document.getElementById('procurar-disciplinas-tab'),
             proximosEventosContainer = document.getElementById('proximos-eventos-container'), agendaLegendMonitor = document.getElementById('agenda-legend-monitor'),
             verAgendaCompletaBtn = document.getElementById('ver-agenda-completa-btn'),
@@ -539,7 +570,11 @@
             editDisciplinaBtn = document.getElementById('edit-disciplina-btn'),
             editDisciplinaModal = document.getElementById('edit-disciplina-modal'),
             closeEditDisciplinaModal = document.getElementById('close-edit-disciplina-modal'),
-            editDisciplinaForm = document.getElementById('edit-disciplina-form');
+            editDisciplinaForm = document.getElementById('edit-disciplina-form'),
+            monitorInteressadosModal = document.getElementById('monitor-interessados-modal'),
+            closeMonitorInteressadosModal = document.getElementById('close-monitor-interessados-modal'),
+            monitorInteressadosList = document.getElementById('monitor-interessados-list'),
+            monitorInteressadosTitle = document.getElementById('monitor-interessados-title');
 
         const timeSlots = ['07:30 - 08:20', '08:20 - 09:10', '09:20 - 10:10', '10:10 - 11:00', '11:10 - 12:00', '12:00 - 12:50', '13:30 - 14:20', '14:20 - 15:10', '15:20 - 16:10', '16:10 - 17:00', '17:10 - 18:00', '18:00 - 18:50'];
 
@@ -573,10 +608,17 @@
 
         const goToDashboardHome = () => {
             showScreen('dashboard', 'Início');
-            const minhasDisciplinasTab = document.getElementById('minhas-disciplinas-tab');
-            const minhasDisciplinasView = document.getElementById('minhas-disciplinas-view');
-            setActiveTab(minhasDisciplinasTab, minhasDisciplinasView, dashboardTabs, dashboardViews);
-            renderMinhasDisciplinas();
+            if (loggedInUser && loggedInUser.role === 'secretaria') {
+                const procurarTab = document.getElementById('procurar-disciplinas-tab');
+                const procurarView = document.getElementById('procurar-disciplinas-view');
+                setActiveTab(procurarTab, procurarView, dashboardTabs, dashboardViews);
+                renderProcurarDisciplinas();
+            } else {
+                const minhasDisciplinasTab = document.getElementById('minhas-disciplinas-tab');
+                const minhasDisciplinasView = document.getElementById('minhas-disciplinas-view');
+                setActiveTab(minhasDisciplinasTab, minhasDisciplinasView, dashboardTabs, dashboardViews);
+                renderMinhasDisciplinas();
+            }
         };
 
         const showToast = (message, type = 'success') => {
@@ -672,21 +714,12 @@
                 showToast("As senhas não coincidem.", "error");
                 return;
             }
-            if (!/^2\d{7}$/.test(matricula)) {
-                 showToast("Matrícula inválida. Deve ter 8 dígitos e começar com '2'.", "error");
+            if (!/^\d{8}$/.test(matricula)) {
+                 showToast("Matrícula inválida. Deve ter 8 dígitos.", "error");
                  return;
             }
-            
+            showLoadingOverlay();
             try {
-                if (!(await emailIsUnique(email))) {
-                    showToast("E-mail já cadastrado.", "error");
-                    return;
-                }
-                if (!(await matriculaIsUnique(matricula))) {
-                    showToast("Matrícula inválida. Já existe um usuário com esta matrícula.", "error");
-                    return;
-                }
-
                 const userCredential = await createUserWithEmailAndPassword(auth, email, password);
                 const user = userCredential.user;
                 
@@ -697,13 +730,21 @@
                     role: 'aluno',
                     disciplinasInscrito: []
                 });
-                showToast("Cadastro realizado com sucesso! Faça login.", "success");
+                showToast("Cadastro realizado com sucesso! Entrando...", "success");
                 e.target.reset();
                 registerView.classList.add('hidden');
                 loginView.classList.remove('hidden');
             } catch (error) {
-                showToast("Erro ao cadastrar. O e-mail já pode estar em uso ou a senha é muito fraca.", "error");
+            console.error("Erro no cadastro:", error.code); 
+            hideLoadingOverlay();
+            if (error.code === 'auth/email-already-in-use') {
+                showToast("Este e-mail já está em uso.", "error");
+            } else if (error.code === 'auth/weak-password') {
+                showToast("A senha é muito fraca. Tente melhorá-la.", "error");
+            } else {
+                showToast("Erro ao cadastrar. Verifique os dados e tente novamente.", "error");
             }
+        }
         });
 
         const handleLogout = async () => {
@@ -728,6 +769,8 @@
             userNameDisplay.textContent = loggedInUser.nome;
             secretariaAreaButton.classList.toggle('hidden', loggedInUser.role !== 'secretaria');
             criarMonitoriaBtn.classList.toggle('hidden', loggedInUser.role !== 'secretaria');
+            minhasDisciplinasTab.classList.toggle('hidden', loggedInUser.role === 'secretaria');
+            minhaAgendaTab.classList.toggle('hidden', loggedInUser.role === 'secretaria');
             const userIsMonitor = await isUserMonitorOfAnyDisciplina(loggedInUser.id);
             agendaLegendMonitor.classList.toggle('hidden', !userIsMonitor);
             if (loggedInUser.role === 'secretaria') {
@@ -769,7 +812,13 @@
             }
             const q = query(collection(db, "disciplinas"), where("__name__", "in", loggedInUser.disciplinasInscrito));
             const querySnapshot = await getDocs(q);
-            for (const docSnap of querySnapshot.docs) {
+            const minhasDisciplinasDocs = querySnapshot.docs;
+            minhasDisciplinasDocs.sort((docA, docB) => {
+                const codigoA = docA.data().codigo || '';
+                const codigoB = docB.data().codigo || '';
+                return codigoA.localeCompare(codigoB);
+            });
+            for (const docSnap of minhasDisciplinasDocs) {
                 const disciplina = { id: docSnap.id, ...docSnap.data() };
                 const monitoresIds = await getMonitoriasForDisciplina(disciplina.id);
                 const monitorDisplayNames = (await getMonitoresData(monitoresIds)).join(', ') || 'N/A';
@@ -817,6 +866,7 @@
                 const lowerSearchTerm = searchTerm.toLowerCase();
                 const disciplinasSnapshot = await getDocs(collection(db, "disciplinas"));
                 const todasAsDisciplinas = disciplinasSnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+                todasAsDisciplinas.sort((a, b) => (a.codigo || '').localeCompare(b.codigo || ''));
                 const filteredDisciplinas = [];
 
                 for (const d of todasAsDisciplinas) {
@@ -944,8 +994,8 @@
                 const agendaTab = document.querySelector('.disciplina-tab[data-view="agenda-avisos"]');
                 const agendaView = document.getElementById('agenda-avisos-view');
                 setActiveTab(agendaTab, agendaView, disciplinaTabs, disciplinaViews);
-                await renderDisciplinaAgenda(disciplinaId);
-                await renderAvisos(disciplinaId);
+                await renderDisciplinaAgenda(disciplinaId, userIsMonitor);
+                await renderAvisos(disciplinaId, userIsMonitor);
                 await renderMateriais(disciplinaId);
                 await renderParticipantes(disciplinaId);
             } catch (error) {
@@ -1093,6 +1143,29 @@
             }
         });
 
+        avisosContainer.addEventListener('click', async (e) => {
+            const deleteBtn = e.target.closest('.delete-aviso-btn');
+            if (!deleteBtn) return;
+            const avisoId = deleteBtn.dataset.avisoId;
+            if (!avisoId) return;
+            const isMonitor = await isUserMonitorOfDisciplina(loggedInUser.id, currentOpenDisciplinaId);
+            if (!isMonitor) {
+                showToast("Apenas monitores podem apagar avisos.", "error");
+                return;
+            }
+            if (confirm("Tem certeza que deseja apagar este aviso?")) {
+                try {
+                    const avisoRef = doc(db, `disciplinas/${currentOpenDisciplinaId}/avisos`, avisoId);
+                    await deleteDoc(avisoRef);
+                    showToast("Aviso apagado com sucesso.", "success");
+                    await renderAvisos(currentOpenDisciplinaId, isMonitor);
+                } catch (error) {
+                    console.error("Erro ao apagar aviso:", error);
+                    showToast("Erro ao apagar o aviso.", "error");
+                }
+            }
+        });
+
         const isUserMonitorOfDisciplina = async (userId, disciplinaId) => {
             if (!userId || !disciplinaId) return false;
             const q = query(collection(db, "monitorias"), where("userId", "==", userId), where("disciplinaId", "==", disciplinaId));
@@ -1178,7 +1251,7 @@
                 const currentParticipants = (await getDocs(q)).docs.map(doc => doc.data());
                 
                 let userSnap;
-                if (/^2\d{7}$/.test(search)) { 
+                if (/^\d{8}$/.test(search)) { 
                     userSnap = await getDocs(query(collection(db, "usuarios"), where("matricula", "==", search), where("role", "==", "aluno")));
                 } else if (search.includes('@')) { 
                     userSnap = await getDocs(query(collection(db, "usuarios"), where("email", "==", search), where("role", "==", "aluno")));
@@ -1266,9 +1339,9 @@
             }
         });
 
-        const renderAvisos = async (disciplinaId) => {
+        const renderAvisos = async (disciplinaId, userIsMonitor = false) => {
             avisosContainer.innerHTML = '';
-            const q = query(collection(db, `disciplinas/${disciplinaId}/avisos`));
+            const q = query(collection(db, `disciplinas/${disciplinaId}/avisos`), orderBy("data", "desc"));
             const querySnapshot = await getDocs(q);
             if (querySnapshot.empty) {
                 avisosContainer.innerHTML = `<div class="border rounded-lg p-4 bg-gray-50 text-center text-gray-500"><p>Nenhum aviso publicado.</p></div>`;
@@ -1276,12 +1349,23 @@
             }
             querySnapshot.forEach(doc => {
                 const aviso = doc.data();
+                const avisoId = doc.id;
                 let dataAviso = 'Data inválida';
-                if (aviso.data && typeof aviso.data.toDate === 'function') {
-                    dataAviso = aviso.data.toDate().toLocaleString('pt-BR', { day: '2-digit', month: 'short', hour: '2-digit', minute: '2-digit' });
-                }
-                const avisoHTML = `<div class="border rounded-lg p-4 bg-gray-50"><p class="font-bold">${aviso.autorNome}</p><p class="text-sm text-gray-500">${dataAviso}</p><p class="mt-2">${aviso.mensagem}</p></div>`;
-                avisosContainer.insertAdjacentHTML('afterbegin', avisoHTML);
+                if (aviso.data && typeof aviso.data.toDate === 'function') { dataAviso = aviso.data.toDate().toLocaleString('pt-BR', { day: '2-digit', month: 'short', hour: '2-digit', minute: '2-digit' }); }
+                const deleteButtonHTML = userIsMonitor ?
+                    `<button data-aviso-id="${avisoId}" class="delete-aviso-btn absolute top-3 right-3 p-1 text-gray-400 hover:text-red-600" title="Apagar aviso">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                            <path stroke-linecap="round" stroke-linejoin="round" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                        </svg>
+                    </button>` : '';
+                const avisoHTML = `
+                    <div class="border rounded-lg p-4 bg-gray-50 relative">
+                        <p class="font-bold">${aviso.autorNome}</p>
+                        <p class="text-sm text-gray-500">${dataAviso}</p>
+                        <p class="mt-2 pr-8">${aviso.mensagem}</p>
+                        ${deleteButtonHTML}
+                    </div>`;
+                avisosContainer.innerHTML += avisoHTML;
             });
         };
 
@@ -1362,7 +1446,7 @@
             });
         };
         
-        const renderDisciplinaAgenda = async (disciplinaId) => {
+        const renderDisciplinaAgenda = async (disciplinaId, userIsMonitor) => {
             disciplinaAgendaContainer.innerHTML = '';
             const hoje = new Date().toISOString().split('T')[0];
             
@@ -1392,6 +1476,31 @@
             }
             querySnapshot.forEach(docSnap => {
                 const event = { id: docSnap.id, ...docSnap.data() };
+
+                const interessadosList = event.interessados || [];
+                const interessadosCount = interessadosList.length;
+                const userIsInterested = interessadosList.includes(loggedInUser.id);
+                
+                let interestHTML = '';
+                if (userIsMonitor || loggedInUser.role === 'secretaria') {
+                    interestHTML = `
+                        <div class="flex items-center justify-center space-x-1 text-xs text-gray-600 cursor-pointer monitor-view-interessados" data-event-id="${event.id}" data-disciplina-id="${disciplinaId}">
+                            <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z" /></svg>
+                            <span class="font-medium">${interessadosCount} interessado(s)</span>
+                        </div>
+                    `;
+                } else if (loggedInUser.role === 'aluno' && event.status === 'confirmado') { 
+                    const buttonClass = userIsInterested ? 'bg-red-100 text-red-700 hover:bg-red-200' : 'bg-green-100 text-green-700 hover:bg-green-200';
+                    const buttonText = userIsInterested ? 'Remover' : 'Confirmar';
+                    interestHTML = `
+                        <div class="flex items-center justify-between">
+                            <span class="text-xs text-gray-600 flex items-center space-x-1">
+                                <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z" /></svg>
+                                <span>${interessadosCount}</span>
+                            </span> <button data-event-id="${event.id}" class="aluno-interesse-btn text-xs font-semibold px-2 py-0.5 rounded-md ${buttonClass}"> ${buttonText} </button>
+                        </div>
+                    `;
+                }
                 
                 const eventDate = new Date(event.date + 'T12:00:00');
                 const card = document.createElement('div');
@@ -1403,53 +1512,99 @@
                 let monitoraTag = '';
                 if (event.status === 'pendente') monitoraTag = `<p class="text-xs font-bold text-yellow-800">PENDENTE</p>`;
                 
-                card.innerHTML = `${monitoraTag}<p class="font-bold text-blue-800">${eventDate.toLocaleDateString('pt-BR', { weekday: 'short' }).split(',')[0]}.</p><p class="text-2xl font-bold text-gray-800">${eventDate.getDate()}</p><p class="text-xs text-gray-500">${eventDate.toLocaleDateString('pt-BR', { month: 'short' })}</p><p class="text-xs text-gray-600 mt-2">${event.time}</p><p class="text-xs text-gray-500">${event.sala || 'Online'}</p>`;
+                card.innerHTML = card.innerHTML = `
+                    ${monitoraTag}
+                    <p class="font-bold text-blue-800">${eventDate.toLocaleDateString('pt-BR', { weekday: 'short' }).split(',')[0]}.</p>
+                    <p class="text-2xl font-bold text-gray-800">${eventDate.getDate()}</p>
+                    <p class="text-xs text-gray-500">${eventDate.toLocaleDateString('pt-BR', { month: 'short' })}</p>
+                    <p class="text-xs text-gray-600 mt-2">${event.time}</p>
+                    <p class="text-xs text-gray-500">${event.sala || 'Online'}</p>
+                    <div class="mt-2 pt-2 border-t border-gray-200"> ${interestHTML}</div>
+                `;
                 disciplinaAgendaContainer.appendChild(card);
             });
         };
         
         disciplinaAgendaContainer.addEventListener('click', async (e) => {
             const card = e.target.closest('.agenda-event-card');
-            if (!card) return;
-
-            const eventId = card.dataset.eventId;
-            const disciplinaNome = card.dataset.disciplinaNome;
-            const eventDoc = await getDoc(doc(db, "agendaEventos", eventId));
-            if (!eventDoc.exists()) return;
-            const event = { id: eventDoc.id, ...eventDoc.data() };
-
-            const eventDate = new Date(event.date + 'T12:00:00');
-            const dataHoraText = `${eventDate.toLocaleDateString('pt-BR', { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric'})} das ${event.time.split(' - ')[0]} às ${event.time.split(' - ')[1]}`;
-            const localText = event.sala === 'Online' ? 'Online (link a ser fornecido)' : event.sala;
-            let statusText = event.status === 'pendente' ? 'Pendente (aguardando aprovação da secretaria)' : 'Confirmado';
-            
-            document.getElementById('evento-disciplina').textContent = disciplinaNome;
-            document.getElementById('evento-data-hora').innerHTML = `<svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-2 text-blue-600" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" /></svg>${dataHoraText}`;
-            document.getElementById('evento-local').innerHTML = `<svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-2 text-blue-600" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.828 0l-4.243-4.243a8 8 0 1111.314 0z" /><path stroke-linecap="round" stroke-linejoin="round" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" /></svg>${localText}`;
-            document.getElementById('evento-status').innerHTML = `<svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-2 ${event.status === 'confirmado' ? 'text-green-600' : 'text-yellow-600'}" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>${statusText}`;
-            
-            const userIsInterested = (event.interessados || []).includes(loggedInUser.id);
-            const countInteressados = (event.interessados || []).length;
-            
-            interesseBtn.dataset.eventoId = eventId;
-            interesseBtn.classList.remove('bg-blue-800', 'bg-red-600', 'bg-gray-400');
-            
-            if (loggedInUser.role === 'secretaria') {
-                interesseBtn.textContent = 'Ações da Secretaria';
-                interesseBtn.classList.add('bg-gray-400', 'cursor-not-allowed');
-                interesseBtn.disabled = true;
-            } else if (event.status === 'pendente') {
-                interesseBtn.textContent = 'Pendente de Confirmação';
-                interesseBtn.classList.add('bg-gray-400', 'cursor-not-allowed');
-                interesseBtn.disabled = true;
-            } else {
-                interesseBtn.textContent = userIsInterested ? 'Remover Interesse' : 'Demonstrar Interesse';
-                interesseBtn.classList.add(userIsInterested ? 'bg-red-600 hover:bg-red-700' : 'bg-blue-800 hover:bg-blue-900');
-                interesseBtn.disabled = false;
+            const interesseBtn = e.target.closest('.aluno-interesse-btn');
+            const monitorViewBtn = e.target.closest('.monitor-view-interessados');
+            if (interesseBtn) {
+                e.stopPropagation();
+                const eventId = interesseBtn.dataset.eventId;
+                const eventRef = doc(db, "agendaEventos", eventId);
+                const eventDoc = await getDoc(eventRef);
+                if (!eventDoc.exists()) return;
+                const event = eventDoc.data();
+                const isInterested = (event.interessados || []).includes(loggedInUser.id);                
+                try {
+                    if (isInterested) {
+                        await updateDoc(eventRef, { interessados: arrayRemove(loggedInUser.id) });
+                        showToast('Interesse removido.', 'warning');
+                    } else {
+                        await updateDoc(eventRef, { interessados: arrayUnion(loggedInUser.id) });
+                        showToast('Interesse demonstrado!', 'success');
+                    }
+                    await renderDisciplinaAgenda(currentOpenDisciplinaId, false);
+                } catch (error) {
+                    showToast('Erro ao atualizar interesse.', 'error');
+                }
+                return;
             }
+            if (monitorViewBtn) {
+                e.stopPropagation();
+                const eventId = monitorViewBtn.dataset.eventId;
+                const disciplinaId = monitorViewBtn.dataset.disciplinaId;
+                
+                try {
+                    const eventDoc = await getDoc(doc(db, "agendaEventos", eventId));
+                    if (!eventDoc.exists()) {
+                        showToast("Evento não encontrado.", "error");
+                        return;
+                    }
+                    const eventData = eventDoc.data();
+                    const interessadosDoEvento = new Set(eventData.interessados || []);
+                    const eventDate = new Date(eventData.date + 'T12:00:00');
+                    monitorInteressadosTitle.textContent = `Interessados em ${eventDate.toLocaleDateString('pt-BR', {day: '2-digit', month: 'short'})}`;
+                    const monitoresSnap = await getDocs(query(collection(db, "monitorias"), where("disciplinaId", "==", disciplinaId)));
+                    const monitorIds = new Set(monitoresSnap.docs.map(doc => doc.data().userId));
+                    const q = query(collection(db, "usuarios"), where("disciplinasInscrito", "array-contains", disciplinaId));
+                    const querySnapshot = await getDocs(q);
+                    const todosParticipantes = querySnapshot.docs.map(d => ({id: d.id, ...d.data()}));
+                    monitorInteressadosList.innerHTML = '';
+                    if (todosParticipantes.length === 0) {
+                        monitorInteressadosList.innerHTML = '<p class="text-gray-500 text-center">Nenhum participante na disciplina.</p>';
+                    } else {
+                        todosParticipantes
+                            .filter(p => p.role === 'aluno')
+                            .sort((a, b) => a.nome.localeCompare(b.nome))
+                            .forEach(participante => {
+                                const isInterested = interessadosDoEvento.has(participante.id);
+                                const isMonitor = monitorIds.has(participante.id);
+                                let iconHTML = '';
+                                if (isMonitor) { iconHTML = '<span class="text-xs font-medium bg-blue-200 text-blue-800 px-2 py-0.5 rounded-full">Monitor</span>'; }
+                                else if (isInterested) { iconHTML = `<svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 text-green-600" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7" /></svg>`; }
+                                else { iconHTML = `<svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 text-gray-300" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M18 12H6" /></svg>`; }
+                                const item = document.createElement('div');
+                                item.className = 'flex items-center justify-between p-3 bg-gray-50 rounded-lg';
+                                item.innerHTML = `
+                                    <div>
+                                        <p class="font-medium text-gray-800">${participante.nome}</p>
+                                        <p class="text-xs text-gray-500">${participante.email}</p>
+                                    </div>
+                                     <div class="flex-shrink-0 w-20 text-right"> ${iconHTML} </div>
+                                `;
+                                monitorInteressadosList.appendChild(item);
+                            });
+                    }
+                    monitorInteressadosModal.classList.remove('hidden');
 
-            interessadosCount.textContent = `${countInteressados} pessoa(s) demonstraram interesse.`;
-            eventoDetalheModal.classList.remove('hidden');
+                } catch (error) {
+                    console.error("Erro ao buscar interessados:", error);
+                    showToast("Erro ao carregar lista de participantes.", "error");
+                }
+                return;
+            }
         });
 
         interesseBtn.addEventListener('click', async (e) => {
@@ -1768,16 +1923,23 @@
                 
                 timeSlots.forEach(time => { 
                     gridHTML += `<tr class="text-xs"><td class="border p-2 font-medium text-gray-500">${time}</td>`; 
-                    for (let i = 0; i < 5; i++) { 
-                        const dayDate = new Date(startOfWeek); 
-                        dayDate.setDate(startOfWeek.getDate() + i); 
-                        const dateStr = formatDate(dayDate); 
-                        const blockedSlot = blockedSlots.find(slot => slot.date === dateStr && slot.time === time); 
-                        const bgColor = blockedSlot ? 'bg-red-500 cursor-pointer' : 'bg-blue-50'; 
-                        const dataInfo = blockedSlot ? `data-id="${blockedSlot.id}"` : ''; 
-                        const titleText = blockedSlot ? `title="${blockedSlot.motivo || 'Bloqueado'}"` : '';
-                        const textInfo = blockedSlot ? `<div class="text-white text-xs truncate-text">${blockedSlot.motivo || 'Bloqueado'}</div>` : ''; 
-                        gridHTML += `<td class="border p-2 ${bgColor} h-10" ${dataInfo} ${titleText}>${textInfo}</td>`; 
+                    for (let i = 0; i < 5; i++) {
+                        const dayDate = new Date(startOfWeek);
+                        dayDate.setDate(startOfWeek.getDate() + i);
+                        const dateStr = formatDate(dayDate);
+                        const blockedSlot = blockedSlots.find(slot => slot.date === dateStr && slot.time === time);
+                        let cellClasses = 'border p-2 h-10';
+                        let cellContent = '';
+                        let dataInfo = '';
+                        if (blockedSlot) {
+                            cellClasses += ' bg-red-500 text-white custom-tooltip';
+                            dataInfo = `data-id="${blockedSlot.id}"`;
+                            cellContent = `
+                                <div class="text-xs">Bloqueado</div>
+                                <span class="tooltip-text">${blockedSlot.motivo || 'Bloqueado'}</span>
+                            `;
+                        } else { cellClasses += ' bg-blue-50'; }
+                        gridHTML += `<td class="${cellClasses}" ${dataInfo}>${cellContent}</td>`;
                     } 
                     gridHTML += `</tr>`; 
                 }); 
@@ -2004,6 +2166,9 @@
         notificarBtn.addEventListener('click', () => notificarModal.classList.remove('hidden'));
         closeNotificarModal.addEventListener('click', () => notificarModal.classList.add('hidden'));
         notificarModal.addEventListener('click', (e) => { if(e.target === notificarModal) notificarModal.classList.add('hidden'); });
+
+        closeMonitorInteressadosModal.addEventListener('click', () => monitorInteressadosModal.classList.add('hidden'));
+        monitorInteressadosModal.addEventListener('click', (e) => { if(e.target === monitorInteressadosModal) monitorInteressadosModal.classList.add('hidden'); });
 
         seraPresencialCheckbox.addEventListener('change', (e) => {
             const isChecked = e.target.checked;
