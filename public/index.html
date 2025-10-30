@@ -1221,12 +1221,17 @@
                     const qMonitoria = query(collection(db, "monitorias"), where("disciplinaId", "==", disciplinaId), where("userId", "==", userId));
                     const monitoriaSnap = await getDocs(qMonitoria);
                     monitoriaSnap.docs.forEach(doc => batch.delete(doc.ref));
-
+                    const qEventos = query(collection(db, "agendaEventos"), where("disciplinaId", "==", disciplinaId), where("interessados", "array-contains", userId));
+                    const eventosSnap = await getDocs(qEventos);
+                    eventosSnap.docs.forEach(eventoDoc => {
+                        const eventoRef = doc(db, "agendaEventos", eventoDoc.id);
+                        batch.update(eventoRef, { interessados: arrayRemove(userId) });
+                    });
                     await batch.commit();
-
                     showToast("Participante desinscrito com sucesso.", "success");
                     await renderParticipantes(disciplinaId);
-
+                    const userIsMonitor = await isUserMonitorOfDisciplina(loggedInUser.id, disciplinaId);
+                    await renderDisciplinaAgenda(disciplinaId, userIsMonitor);
                 } catch (error) {
                     console.error("Erro ao desinscrever participante:", error);
                     showToast("Erro ao desinscrever participante.", "error");
