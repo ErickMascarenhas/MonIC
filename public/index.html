@@ -114,7 +114,7 @@
                     <div class="bg-white p-8 rounded-2xl shadow-lg">
                         <form id="register-form" class="space-y-6">
                             <div class="space-y-2"><label for="register-name" class="text-sm font-medium text-gray-700">Nome Completo</label><input id="register-name" name="name" type="text" required placeholder="Seu nome" class="w-full h-12 px-4 border rounded-lg"></div>
-                            <div class="space-y-2"><label for="register-matricula" class="text-sm font-medium text-gray-700">Número de Matrícula</label><input id="register-matricula" name="matricula" type="text" required placeholder="20221001" pattern="^2[0-9]{7}$" maxlength="8" title="O número de matrícula deve ter 8 dígitos e começar com '2'" class="w-full h-12 px-4 border rounded-lg"></div>
+                            <div class="space-y-2"><label for="register-matricula" class="text-sm font-medium text-gray-700">Número de Matrícula</label><input id="register-matricula" name="matricula" type="text" required placeholder="20221001" pattern="^\d{8}$" maxlength="8" title="O número de matrícula deve ter 8 dígitos" class="w-full h-12 px-4 border rounded-lg"></div>
                             <div class="space-y-2"><label for="register-email" class="text-sm font-medium text-gray-700">E-mail</label><input id="register-email" name="email" type="email" required placeholder="seuemail@ic.ufal.br" pattern=".*@ic\.ufal\.br" title="O e-mail deve terminar com @ic.ufal.br" class="w-full h-12 px-4 border rounded-lg"></div>
                             <div class="space-y-2"><label for="register-password" class="text-sm font-medium text-gray-700">Senha</label><input id="register-password" name="password" type="password" required placeholder="Crie uma senha" class="w-full h-12 px-4 border rounded-lg"></div>
                             <div class="space-y-2"><label for="register-confirm-password" class="text-sm font-medium text-gray-700">Confirmar Senha</label><input id="register-confirm-password" name="confirm-password" type="password" required placeholder="Confirme sua senha" class="w-full h-12 px-4 border rounded-lg"></div>
@@ -1748,6 +1748,17 @@
                 showToast("Preencha todos os campos obrigatórios.", "warning");
                 return;
             }
+            const dataHoraInicio = new Date(`${data}T${inicio}`);
+            const dataHoraFim = new Date(`${data}T${fim}`);
+            const agora = new Date();
+            if (dataHoraInicio < agora) {
+                showToast("Não é permitido agendar eventos em data ou horário anterior ao atual.", "warning");
+                return;
+            }
+            if (dataHoraFim <= dataHoraInicio) {
+                showToast("O horário de término deve ser posterior ao horário de início.", "warning");
+                return;
+            }
             try {
                 const disciplinaDoc = await getDoc(doc(db, "disciplinas", disciplinaId));
                 const disciplinaNome = disciplinaDoc.data().nome;
@@ -1919,7 +1930,7 @@
             unsubscribeBloqueios = onSnapshot(q, (querySnapshot) => {
                 const blockedSlots = [];
                 querySnapshot.forEach(doc => blockedSlots.push({ id: doc.id, ...doc.data() }));
-                let gridHTML = `<table class="w-full text-center border-collapse"><thead><tr class="text-sm font-semibold text-gray-600"><th class="border p-2 w-32">Horários</th><th class="border p-2">Seg</th><th class="border p-2">Ter</th><th class="border p-2">Qua</th><th class="border p-2">Qui</th><th class="border p-2">Sex</th></tr></thead><tbody>`;
+                let gridHTML = `<table class="w-full text-center border-collapse table-fixed"><thead><tr class="text-sm font-semibold text-gray-600"><th class="border p-2 w-32">Horários</th><th class="border p-2">Seg</th><th class="border p-2">Ter</th><th class="border p-2">Qua</th><th class="border p-2">Qui</th><th class="border p-2">Sex</th></tr></thead><tbody>`;
                 
                 timeSlots.forEach(time => { 
                     gridHTML += `<tr class="text-xs"><td class="border p-2 font-medium text-gray-500">${time}</td>`; 
@@ -1996,7 +2007,7 @@
 
         addSalaForm.addEventListener('submit', async (e) => {
             e.preventDefault();
-            const nomeSala = e.target.querySelector('input').value.trim().toUpperCase();
+            const nomeSala = capitalize(e.target.querySelector('input').value.trim());
             if (!nomeSala) return;
             try {
                 await addDoc(collection(db, "salas"), { nome: nomeSala });
@@ -2046,18 +2057,23 @@
                 }
                 let hasUnread = false;
                 const sortedNotificacoes = snapshot.docs.map(doc => ({id: doc.id, ...doc.data()})).sort((a, b) => b.timestamp - a.timestamp);
-                
                 sortedNotificacoes.forEach(notif => {
                     if (!notif.lida) hasUnread = true;
                     const item = document.createElement('div');
-                    item.className = `p-3 border-b border-gray-100 ${!notif.lida ? 'bg-blue-50' : ''}`;
-                    item.innerHTML = `<p class="text-sm text-gray-700">${notif.message}</p>`;
+                    item.className = `flex items-center justify-between p-3 border-b border-gray-100 ${!notif.lida ? 'bg-blue-50' : ''}`;
+                    item.innerHTML = `
+                        <p class="text-sm text-gray-700 mr-2" title="${notif.message}">${notif.message}</p>
+                        <button data-id="${notif.id}" class="delete-notification-btn flex-shrink-0 p-1 text-gray-400 hover:text-red-600 rounded-full" title="Excluir notificação">
+                            <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                                <path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12" />
+                            </svg>
+                        </button>
+                    `;
                     notificationsList.appendChild(item);
                 });
                 notificationDot.classList.toggle('hidden', !hasUnread);
             });
         };
-
         togglePasswordBtn.addEventListener('click', () => { 
             const isPassword = passwordInput.type === 'password'; 
             passwordInput.type = isPassword ? 'text' : 'password'; 
@@ -2187,6 +2203,21 @@
                     snapshot.docs.forEach(doc => batch.update(doc.ref, { lida: true }));
                     batch.commit();
                 });
+            }
+        });
+
+        notificationsList.addEventListener('click', async (e) => {
+            const deleteBtn = e.target.closest('.delete-notification-btn');
+            if (!deleteBtn) return; 
+            e.stopPropagation(); 
+            const notificationId = deleteBtn.dataset.id;
+            if (!notificationId) return;
+            try {
+                const notifRef = doc(db, "notificacoes", notificationId);
+                await deleteDoc(notifRef);
+            } catch (error) {
+                console.error("Erro ao excluir notificação:", error);
+                showToast("Erro ao excluir notificação.", "error");
             }
         });
 
