@@ -1180,7 +1180,7 @@
             const monitoresIds = await getMonitoriasForDisciplina(disciplinaId);
             const isSecretaria = loggedInUser.role === 'secretaria';
             
-            querySnapshot.docs.filter(doc => !(isSecretaria && doc.data().role === 'secretaria')).forEach(doc => {
+            querySnapshot.docs.filter(doc => doc.data().role !== 'secretaria').forEach(doc => {
                 const participante = { id: doc.id, ...doc.data() };
                 const isMonitor = monitoresIds.includes(participante.id);
                 
@@ -2263,3 +2263,4 @@
     </script>
 </body>
 </html>
+
