@@ -1479,7 +1479,19 @@
                 disciplinaAgendaContainer.innerHTML = `<p class="text-gray-500 col-span-full">Nenhum evento futuro agendado.</p>`;
                 return;
             }
-            querySnapshot.forEach(docSnap => {
+            const agora = new Date();
+            const eventosFuturos = querySnapshot.docs.filter(docSnap => {
+                const event = docSnap.data();
+                const endTimeStr = event.time.split(' - ')[1];
+                if (!endTimeStr) return false;
+                const eventEndTime = new Date(`${event.date}T${endTimeStr}`);
+                return eventEndTime >= agora;
+            });
+            if (eventosFuturos.length === 0) {
+                disciplinaAgendaContainer.innerHTML = `<p class="text-gray-500 col-span-full">Nenhum evento futuro agendado.</p>`;
+                return;
+            }
+            eventosFuturos.forEach(docSnap => { 
                 const event = { id: docSnap.id, ...docSnap.data() };
 
                 const interessadosList = event.interessados || [];
@@ -1727,9 +1739,19 @@
                 proximosEventosContainer.innerHTML = `<p class="text-center text-gray-500">Nenhum evento programado.</p>`;
                 return;
             }
+            const agora = new Date();
+            let eventCount = 0;
             let eventsHtml = '<div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">';
             for (const docSnap of querySnapshot.docs) {
                 const event = docSnap.data();
+                const endTimeStr = event.time.split(' - ')[1];
+                if (!endTimeStr) {
+                    console.warn("Evento sem horário de término:", event);
+                    continue;
+                }
+                const eventEndTime = new Date(`${event.date}T${endTimeStr}`);
+                if (eventEndTime < agora) { continue; }
+                eventCount++;
                 const disciplinaDoc = await getDoc(doc(db, "disciplinas", event.disciplinaId));
                 const disciplinaNome = disciplinaDoc.exists() ? disciplinaDoc.data().nome : "Desconhecida";
                 const isMonitor = await isUserMonitorOfDisciplina(loggedInUser.id, event.disciplinaId);
@@ -1737,7 +1759,11 @@
                 eventsHtml += `<div class="bg-gray-50 p-4 rounded-lg border border-gray-200"><h3 class="font-bold text-gray-800">${new Date(event.date + 'T12:00:00').toLocaleDateString('pt-BR', {weekday: 'long', day: '2-digit', month: 'short'})}</h3><div class="mt-2 p-3 bg-white rounded-md border-l-4 ${borderColor}"><p class="font-bold text-gray-800">${disciplinaNome}</p><p class="text-sm text-gray-500">Sala: ${event.sala || 'Online'}</p><p class="text-sm text-gray-500">Horário: ${event.time}</p></div></div>`;
             }
             eventsHtml += '</div>';
-            proximosEventosContainer.innerHTML = eventsHtml;
+            if (eventCount === 0) {
+                proximosEventosContainer.innerHTML = `<p class="text-center text-gray-500">Nenhum evento futuro programado.</p>`;
+            } else {
+                proximosEventosContainer.innerHTML = eventsHtml;
+            }
         };
 
         agendarMonitoriaForm.addEventListener('submit', async (e) => {
