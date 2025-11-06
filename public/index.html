@@ -230,11 +230,11 @@
                 <div id="disciplina-views-container" class="mt-6">
                     <div id="agenda-avisos-view" class="disciplina-view space-y-6">
                         <div>
-                            <div class="flex justify-between items-center"><h2 class="text-xl font-bold">Agenda da Disciplina</h2><button id="criar-evento-btn" class="hidden px-4 py-2 border border-gray-300 text-sm font-semibold rounded-lg hover:bg-gray-100">Criar evento de monitoria</button></div>
+                            <div class="flex justify-between items-center"><h2 class="text-xl font-bold">Agenda da Disciplina</h2><button id="criar-evento-btn" class="hidden px-4 py-2 bg-blue-800 text-white text-sm font-semibold rounded-lg">Criar evento de monitoria</button></div>
                             <div id="disciplina-agenda-container" class="mt-4 grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-4"></div>
                         </div>
                         <div>
-                            <div class="flex justify-between items-center"><h2 class="text-xl font-bold">Avisos</h2><div class="flex items-center space-x-2"><button id="notificar-btn" class="hidden px-4 py-2 border border-gray-300 text-sm font-semibold rounded-lg hover:bg-gray-100">Notificar</button></div></div>
+                            <div class="flex justify-between items-center"><h2 class="text-xl font-bold">Avisos</h2><div class="flex items-center space-x-2"><button id="notificar-btn" class="hidden px-4 py-2 bg-blue-800 text-white text-sm font-semibold rounded-lg">Notificar</button></div></div>
                             <div id="avisos-container" class="mt-4 space-y-4"></div>
                         </div>
                     </div>
@@ -893,7 +893,7 @@
                     procurarDisciplinasContainer.innerHTML = `<p class="text-gray-500 col-span-full">Nenhuma disciplina encontrada.</p>`;
                 } else {
                     filteredDisciplinas.forEach(d => {
-                        const isSubscribed = loggedInUser.disciplinasInscrito.includes(d.id);
+                        const isSubscribed = loggedInUser.disciplinasInscrito.includes(d.id) || (loggedInUser.role === 'secretaria') ? true : false;
                         const card = document.createElement('div');
                         card.className = "bg-white border border-gray-200 rounded-xl p-6 flex flex-col shadow-sm h-full";
                         card.innerHTML = `
@@ -927,7 +927,7 @@
         procurarDisciplinasContainer.addEventListener('click', async (e) => {
             if (e.target.tagName === 'BUTTON') {
                 const disciplinaId = e.target.dataset.id;
-                const isSubscribed = loggedInUser.disciplinasInscrito.includes(disciplinaId);
+                const isSubscribed = loggedInUser.disciplinasInscrito.includes(disciplinaId) || (loggedInUser.role === 'secretaria') ? true : false;
                 if (isSubscribed) {
                     showDisciplinaScreen(disciplinaId);
                 } else {
@@ -950,14 +950,24 @@
                 showToast("Preencha todos os campos.", "warning");
                 return;
             }
+            showLoadingOverlay();
             try {
+                const qVerificacao = query(collection(db, "disciplinas"), where("codigo", "==", codigo));
+                const snapshotVerificacao = await getDocs(qVerificacao);
+                if (!snapshotVerificacao.empty) {
+                    showToast("Erro: Já existe uma disciplina com este código.", "error");
+                    return;
+                }
                 const disciplinaRef = await addDoc(collection(db, "disciplinas"), { codigo, nome });
                 criarMonitoriaModal.classList.add('hidden');
                 e.target.reset();
                 await renderProcurarDisciplinas();
                 showToast('Nova monitoria criada com sucesso!');
             } catch (error) {
+                console.error("Erro ao criar monitoria:", error);
                 showToast("Ocorreu um erro ao criar a monitoria.", "warning");
+            } finally {
+                hideLoadingOverlay();
             }
         });
 
@@ -1795,6 +1805,19 @@
                 const disciplinaNome = disciplinaDoc.data().nome;
                 
                 if (isPresencial) {
+                    const slotsParaAgendar = getTimeSlotsInRange(inicio, fim);
+                    if (slotsParaAgendar.length === 0) {
+                        showToast("Horário inválido. O início e fim devem coincidir com os slots de horário do IC (ex: 07:30 - 09:10).", "error");
+                        return;
+                    }
+                    const qBloqueios = query(collection(db, "bloqueios"), where("sala", "==", sala), where("date", "==", data));
+                    const bloqueiosSnap = await getDocs(qBloqueios);
+                    const horariosJaBloqueados = bloqueiosSnap.docs.map(doc => doc.data().time);
+                    const conflito = slotsParaAgendar.some(slot => horariosJaBloqueados.includes(slot));
+                    if (conflito) {
+                        showToast("Erro: A sala já está bloqueada em um ou mais horários selecionados.", "error");
+                        return;
+                    }
                      const status = 'pendente'; 
                      await addDoc(collection(db, "agendaEventos"), { 
                         disciplinaId, 
@@ -2263,4 +2286,3 @@
     </script>
 </body>
 </html>
-
