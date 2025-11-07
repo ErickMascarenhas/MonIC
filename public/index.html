@@ -114,7 +114,7 @@
                     <div class="bg-white p-8 rounded-2xl shadow-lg">
                         <form id="register-form" class="space-y-6">
                             <div class="space-y-2"><label for="register-name" class="text-sm font-medium text-gray-700">Nome Completo</label><input id="register-name" name="name" type="text" required placeholder="Seu nome" class="w-full h-12 px-4 border rounded-lg"></div>
-                            <div class="space-y-2"><label for="register-matricula" class="text-sm font-medium text-gray-700">Número de Matrícula</label><input id="register-matricula" name="matricula" type="text" required placeholder="20221001" pattern="^\d{8}$" maxlength="8" title="O número de matrícula deve ter 8 dígitos" class="w-full h-12 px-4 border rounded-lg"></div>
+                            <div class="space-y-2"><label for="register-matricula" class="text-sm font-medium text-gray-700">Número de Matrícula</label><input id="register-matricula" name="matricula" type="text" required placeholder="20221001" pattern="^\d+$" title="O número de matrícula deve conter apenas dígitos"  class="w-full h-12 px-4 border rounded-lg"></div>
                             <div class="space-y-2"><label for="register-email" class="text-sm font-medium text-gray-700">E-mail</label><input id="register-email" name="email" type="email" required placeholder="seuemail@ic.ufal.br" pattern=".*@ic\.ufal\.br" title="O e-mail deve terminar com @ic.ufal.br" class="w-full h-12 px-4 border rounded-lg"></div>
                             <div class="space-y-2"><label for="register-password" class="text-sm font-medium text-gray-700">Senha</label><input id="register-password" name="password" type="password" required placeholder="Crie uma senha" class="w-full h-12 px-4 border rounded-lg"></div>
                             <div class="space-y-2"><label for="register-confirm-password" class="text-sm font-medium text-gray-700">Confirmar Senha</label><input id="register-confirm-password" name="confirm-password" type="password" required placeholder="Confirme sua senha" class="w-full h-12 px-4 border rounded-lg"></div>
@@ -714,10 +714,6 @@
                 showToast("As senhas não coincidem.", "error");
                 return;
             }
-            if (!/^\d{8}$/.test(matricula)) {
-                 showToast("Matrícula inválida. Deve ter 8 dígitos.", "error");
-                 return;
-            }
             showLoadingOverlay();
             try {
                 const userCredential = await createUserWithEmailAndPassword(auth, email, password);
@@ -1266,7 +1262,7 @@
                 const currentParticipants = (await getDocs(q)).docs.map(doc => doc.data());
                 
                 let userSnap;
-                if (/^\d{8}$/.test(search)) { 
+                if (/^\d+$/.test(search)) { 
                     userSnap = await getDocs(query(collection(db, "usuarios"), where("matricula", "==", search), where("role", "==", "aluno")));
                 } else if (search.includes('@')) { 
                     userSnap = await getDocs(query(collection(db, "usuarios"), where("email", "==", search), where("role", "==", "aluno")));
